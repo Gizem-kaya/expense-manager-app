@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Expense Manager'),
     );
   }
 }
@@ -30,13 +30,22 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+  final List<LinearExpenses> monthlyExpenses = [
+    LinearExpenses(0, 1600),
+    LinearExpenses(1, 2000),
+    LinearExpenses(2, 2500),
+    LinearExpenses(3, 2600),
+    LinearExpenses(4, 2100)
+  ];
+
+  final List<CategoricalExpenses> categoricalExpenses = [CategoricalExpenses("Food", 500, Currency.Euro),
+    CategoricalExpenses("GWE", 500, Currency.Euro),
+    CategoricalExpenses('Transportation', 200, Currency.Euro),
+    CategoricalExpenses('Rent', 1550, Currency.Euro),
+    CategoricalExpenses('Activities', 200, Currency.Euro),
+    CategoricalExpenses('Insurances', 300, Currency.Euro)
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -56,28 +65,23 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: _incrementCounter,
+      //   tooltip: 'Increment',
+      //   child: const Icon(Icons.add),
+      // ),
     );
   }
 
   Widget _buildGraph() {
     // Sample data for the chart
-    final List<charts.Series<LinearSales, int>> seriesList = [
-      charts.Series<LinearSales, int>(
-        id: 'Sales',
+    final List<charts.Series<LinearExpenses, int>> seriesList = [
+      charts.Series<LinearExpenses, int>(
+        id: 'expenses',
         colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-        domainFn: (LinearSales sales, _) => sales.year,
-        measureFn: (LinearSales sales, _) => sales.sales,
-        data: [
-          LinearSales(0, 5),
-          LinearSales(1, 25),
-          LinearSales(2, 100),
-          LinearSales(3, 75),
-        ],
+        domainFn: (LinearExpenses expenses, _) => expenses.column,
+        measureFn: (LinearExpenses expenses, _) => expenses.row,
+        data: monthlyExpenses,
       ),
     ];
 
@@ -88,53 +92,102 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildCardView() {
-    return Row(
-      children: [
-        Expanded(
-          flex: 3,
-          child: Column(
-            children: [
-              _buildCard(),
-              SizedBox(height: 8),
-              _buildCard(),
-              SizedBox(height: 8),
-              _buildCard(),
-            ],
+    return GridView.count(
+      crossAxisCount: 2,
+        childAspectRatio: (1 / .4),
+      children: List.generate(categoricalExpenses.length, (index) {
+        return SizedBox(
+
+          child: _buildCard(
+            context,
+            categoricalExpenses[index].category,
+            categoricalExpenses[index].amount,
+            categoricalExpenses[index].currency.sign,
           ),
-        ),
-        Expanded(
-          flex: 3,
-          child: Column(
-            children: [
-              _buildCard(),
-              SizedBox(height: 8),
-              _buildCard(),
-              SizedBox(height: 8),
-              _buildCard(),
-            ],
-          ),
-        ),
-      ],
+        );
+      }),
     );
   }
 
-  Widget _buildCard() {
+  Widget _buildCard(BuildContext context, String title, int amount, String currency) {
     return Card(
       child: ListTile(
-        title: Text('Card Title'),
-        subtitle: Text('Card Subtitle'),
-        trailing: Icon(Icons.arrow_forward),
+        title: Text(title),
+        subtitle: Text('$amount $currency'),
+        trailing: IconButton(
+          icon: Icon(Icons.add),
+          onPressed: () {
+            _showDialog(context);
+          },
+        ),
         onTap: () {
-          // Do something when the card is tapped
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => NewScreen()),
+          );
         },
       ),
     );
   }
 }
 
-class LinearSales {
-  final int year;
-  final int sales;
+class LinearExpenses {
+  final int column;
+  final int row;
 
-  LinearSales(this.year, this.sales);
+  LinearExpenses(this.column, this.row);
+}
+
+enum Currency {
+  Lira('₺'),
+  Euro('€'),
+  Dollar('\$');
+
+  final String sign;
+  const Currency(this.sign);
+}
+
+
+class CategoricalExpenses {
+  final String category;
+  final int amount;
+  final Currency currency;
+
+  CategoricalExpenses(this.category, this.amount, this.currency);
+}
+
+
+void _showDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Dialog Title'),
+        content: Text('This is a dialog.'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('Close'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
+class NewScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('New Screen'),
+      ),
+      body: Center(
+        child: Text('This is a new screen.'),
+      ),
+    );
+  }
 }
