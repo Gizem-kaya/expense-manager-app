@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:fl_chart/fl_chart.dart';
+import 'dart:math' as math;
+import 'categoricalExpenses.dart';
+import 'monthlyExpenses.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,22 +33,228 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final betweenSpace = 0.3;
 
-  final List<LinearExpenses> monthlyExpenses = [
-    LinearExpenses(0, 1600),
-    LinearExpenses(1, 2000),
-    LinearExpenses(2, 2500),
-    LinearExpenses(3, 2600),
-    LinearExpenses(4, 2100)
+  List<CategoricalExpenses> januaryExpenses = [
+    CategoricalExpenses("Food", 600, Currency.Euro),
+    CategoricalExpenses("GWE", 350, Currency.Euro),
+    CategoricalExpenses('Transportation', 250, Currency.Euro),
+    CategoricalExpenses('Rent', 1600, Currency.Euro),
+    CategoricalExpenses('Activities', 500, Currency.Euro),
+    CategoricalExpenses('Insurances', 350, Currency.Euro)
   ];
 
-  final List<CategoricalExpenses> categoricalExpenses = [CategoricalExpenses("Food", 500, Currency.Euro),
-    CategoricalExpenses("GWE", 500, Currency.Euro),
-    CategoricalExpenses('Transportation', 200, Currency.Euro),
-    CategoricalExpenses('Rent', 1550, Currency.Euro),
-    CategoricalExpenses('Activities', 200, Currency.Euro),
-    CategoricalExpenses('Insurances', 300, Currency.Euro)
+  List<CategoricalExpenses> februaryExpenses = [
+    CategoricalExpenses("Food", 550, Currency.Euro),
+    CategoricalExpenses("GWE", 450, Currency.Euro),
+    CategoricalExpenses('Transportation', 220, Currency.Euro),
+    CategoricalExpenses('Rent', 1600, Currency.Euro),
+    CategoricalExpenses('Activities', 150, Currency.Euro),
+    CategoricalExpenses('Insurances', 350, Currency.Euro)
   ];
+
+  List<CategoricalExpenses> marchExpenses = [
+    CategoricalExpenses("Food", 600, Currency.Euro),
+    CategoricalExpenses("GWE", 250, Currency.Euro),
+    CategoricalExpenses('Transportation', 250, Currency.Euro),
+    CategoricalExpenses('Rent', 1600, Currency.Euro),
+    CategoricalExpenses('Activities', 400, Currency.Euro),
+    CategoricalExpenses('Insurances', 350, Currency.Euro)
+  ];
+
+  List<CategoricalExpenses> aprilExpenses = [
+    CategoricalExpenses("Food", 550, Currency.Euro),
+    CategoricalExpenses("GWE", 200, Currency.Euro),
+    CategoricalExpenses('Transportation', 20, Currency.Euro),
+    CategoricalExpenses('Rent', 1600, Currency.Euro),
+    CategoricalExpenses('Activities', 150, Currency.Euro),
+    CategoricalExpenses('Insurances', 350, Currency.Euro)
+  ];
+
+  List<CategoricalExpenses> mayExpenses = [
+    CategoricalExpenses("Food", 600, Currency.Euro),
+    CategoricalExpenses("GWE", 170, Currency.Euro),
+    CategoricalExpenses('Transportation', 50, Currency.Euro),
+    CategoricalExpenses('Rent', 1600, Currency.Euro),
+    CategoricalExpenses('Activities', 100, Currency.Euro),
+    CategoricalExpenses('Insurances', 350, Currency.Euro)
+  ];
+
+  List<CategoricalExpenses> juneExpenses = [
+    CategoricalExpenses("Food", 550, Currency.Euro),
+    CategoricalExpenses("GWE", 60, Currency.Euro),
+    CategoricalExpenses('Transportation', 20, Currency.Euro),
+    CategoricalExpenses('Rent', 1600, Currency.Euro),
+    CategoricalExpenses('Activities', 150, Currency.Euro),
+    CategoricalExpenses('Insurances', 350, Currency.Euro)
+  ];
+
+  List<CategoricalExpenses> julyExpenses = [
+    CategoricalExpenses("Food", 600, Currency.Euro),
+    CategoricalExpenses("GWE", 50, Currency.Euro),
+    CategoricalExpenses('Transportation', 50, Currency.Euro),
+    CategoricalExpenses('Rent', 1600, Currency.Euro),
+    CategoricalExpenses('Activities', 100, Currency.Euro),
+    CategoricalExpenses('Insurances', 350, Currency.Euro)
+  ];
+
+  List<CategoricalExpenses> augustExpenses = [
+    CategoricalExpenses("Food", 550, Currency.Euro),
+    CategoricalExpenses("GWE", 30, Currency.Euro),
+    CategoricalExpenses('Transportation', 220, Currency.Euro),
+    CategoricalExpenses('Rent', 1600, Currency.Euro),
+    CategoricalExpenses('Activities', 150, Currency.Euro),
+    CategoricalExpenses('Insurances', 350, Currency.Euro)
+  ];
+
+  List<CategoricalExpenses> septemberExpenses = [
+    CategoricalExpenses("Food", 600, Currency.Euro),
+    CategoricalExpenses("GWE", 50, Currency.Euro),
+    CategoricalExpenses('Transportation', 250, Currency.Euro),
+    CategoricalExpenses('Rent', 1600, Currency.Euro),
+    CategoricalExpenses('Activities', 100, Currency.Euro),
+    CategoricalExpenses('Insurances', 350, Currency.Euro)
+  ];
+
+  List<CategoricalExpenses> octoberExpenses = [
+    CategoricalExpenses("Food", 550, Currency.Euro),
+    CategoricalExpenses("GWE", 90, Currency.Euro),
+    CategoricalExpenses('Transportation', 220, Currency.Euro),
+    CategoricalExpenses('Rent', 1600, Currency.Euro),
+    CategoricalExpenses('Activities', 150, Currency.Euro),
+    CategoricalExpenses('Insurances', 350, Currency.Euro)
+  ];
+
+  List<CategoricalExpenses> novemberExpenses = [
+    CategoricalExpenses("Food", 600, Currency.Euro),
+    CategoricalExpenses("GWE", 150, Currency.Euro),
+    CategoricalExpenses('Transportation', 250, Currency.Euro),
+    CategoricalExpenses('Rent', 1600, Currency.Euro),
+    CategoricalExpenses('Activities', 100, Currency.Euro),
+    CategoricalExpenses('Insurances', 350, Currency.Euro)
+  ];
+
+  List<CategoricalExpenses> decemberExpenses = [
+    CategoricalExpenses("Food", 550, Currency.Euro),
+    CategoricalExpenses("GWE", 300, Currency.Euro),
+    CategoricalExpenses('Transportation', 220, Currency.Euro),
+    CategoricalExpenses('Rent', 1600, Currency.Euro),
+    CategoricalExpenses('Activities', 150, Currency.Euro),
+    CategoricalExpenses('Insurances', 350, Currency.Euro)
+  ];
+
+  late List<MonthlyExpenses> expensesOf2023;
+  @override
+  void initState() {
+    super.initState();
+    expensesOf2023 = [
+      MonthlyExpenses("JAN", januaryExpenses),
+      MonthlyExpenses("FEB", februaryExpenses),
+      MonthlyExpenses("MAR", marchExpenses),
+      MonthlyExpenses("APR", aprilExpenses),
+      MonthlyExpenses("MAY", mayExpenses),
+      MonthlyExpenses("JUN", juneExpenses),
+      MonthlyExpenses("JUL", julyExpenses),
+      MonthlyExpenses("AUG", augustExpenses),
+      MonthlyExpenses("SEP", septemberExpenses),
+      MonthlyExpenses("OCT", octoberExpenses),
+      MonthlyExpenses("NOV", novemberExpenses),
+      MonthlyExpenses("DEC", decemberExpenses),
+    ];
+  }
+
+  BarChartGroupData generateGroupData(
+    int x,
+    double food,
+    double gwe,
+    double transportation,
+    double rent,
+    double activities,
+    double insurances,
+  ) {
+    return BarChartGroupData(
+      x: x,
+      groupVertically: true,
+      barRods: [
+        BarChartRodData(
+          fromY: 0,
+          toY: rent,
+          colors: [const Color(0xFFE57373)],
+          width: 8,
+        ),
+        BarChartRodData(
+          fromY: rent + betweenSpace,
+          toY: rent + betweenSpace + food,
+          colors: [const Color(0xFFFFB74D)],
+          width: 8,
+        ),
+        BarChartRodData(
+          fromY: rent + betweenSpace + food + betweenSpace,
+          toY: rent + betweenSpace + food + betweenSpace + gwe,
+          colors: [const Color(0xFFFFD54F)],
+          width: 8,
+        ),
+        BarChartRodData(
+          fromY: rent + betweenSpace + food + betweenSpace + gwe + betweenSpace,
+          toY: rent +
+              betweenSpace +
+              food +
+              betweenSpace +
+              gwe +
+              betweenSpace +
+              transportation,
+          colors: [const Color(0xFF81C784)],
+          width: 8,
+        ),
+        BarChartRodData(
+          fromY: rent +
+              betweenSpace +
+              food +
+              betweenSpace +
+              gwe +
+              betweenSpace +
+              transportation +
+              betweenSpace,
+          toY: rent +
+              betweenSpace +
+              food +
+              betweenSpace +
+              gwe +
+              betweenSpace +
+              transportation +
+              betweenSpace +
+              activities,
+          colors: [const Color(0xFF64B5F6)],
+          width: 8,
+        ),
+        BarChartRodData(
+          fromY: rent +
+              betweenSpace +
+              food +
+              betweenSpace +
+              gwe +
+              betweenSpace +
+              transportation +
+              betweenSpace +
+              activities +
+              betweenSpace,
+          toY: rent +
+              betweenSpace +
+              food +
+              betweenSpace +
+              gwe +
+              betweenSpace +
+              transportation +
+              betweenSpace +
+              activities +
+              betweenSpace +
+              insurances,
+          colors: [const Color(0xFF9575CD)],
+          width: 8,
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,42 +283,123 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildGraph() {
-    // Sample data for the chart
-    final List<charts.Series<LinearExpenses, int>> seriesList = [
-      charts.Series<LinearExpenses, int>(
-        id: 'expenses',
-        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
-        domainFn: (LinearExpenses expenses, _) => expenses.column,
-        measureFn: (LinearExpenses expenses, _) => expenses.row,
-        data: monthlyExpenses,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(15, 20, 20, 10),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Text(
+            '2023',
+            style: TextStyle(
+              color: Colors.blue,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 14),
+          AspectRatio(
+            aspectRatio: 1.1,
+            child: Column(
+              children: [
+                Expanded(
+                  child: BarChart(
+                    BarChartData(
+                      alignment: BarChartAlignment.spaceAround,
+                      barTouchData: BarTouchData(enabled: false),
+                      borderData: FlBorderData(show: false),
+                      gridData: FlGridData(show: false),
+                      maxY: expensesOf2023
+                              .map((monthlyExpense) =>
+                                  monthlyExpense.getTotalExpense())
+                              .reduce((value, element) =>
+                                  value > element ? value : element) +
+                          300,
+                      titlesData: FlTitlesData(
+                        bottomTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 20,
+                          getTextStyles: (context, value) => const TextStyle(
+                              color: Colors.black38, fontSize: 11),
+                          margin: 10,
+                          getTitles: (double value) {
+                            int index = value.toInt();
+                            if (index >= 0 && index < expensesOf2023.length) {
+                              return expensesOf2023[index].column;
+                            }
+                            return 'error';
+                          },
+                        ),
+                        leftTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 20,
+                          getTextStyles: (context, value) => const TextStyle(
+                              color: Colors.black38, fontSize: 11),
+                          margin: 7,
+                        ),
+                        topTitles: SideTitles(showTitles: false),
+                        rightTitles: SideTitles(showTitles: false),
+                      ),
+                      barGroups: List.generate(
+                        expensesOf2023.length,
+                        (index) => generateGroupData(
+                          index,
+                          expensesOf2023[index]
+                              .categoricalExpensesList[0]
+                              .amount
+                              .toDouble(),
+                          expensesOf2023[index]
+                              .categoricalExpensesList[1]
+                              .amount
+                              .toDouble(),
+                          expensesOf2023[index]
+                              .categoricalExpensesList[2]
+                              .amount
+                              .toDouble(),
+                          expensesOf2023[index]
+                              .categoricalExpensesList[3]
+                              .amount
+                              .toDouble(),
+                          expensesOf2023[index]
+                              .categoricalExpensesList[4]
+                              .amount
+                              .toDouble(),
+                          expensesOf2023[index]
+                              .categoricalExpensesList[5]
+                              .amount
+                              .toDouble(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-    ];
-
-    return charts.LineChart(
-      seriesList,
-      animate: true,
     );
   }
 
   Widget _buildCardView() {
     return GridView.count(
       crossAxisCount: 2,
-        childAspectRatio: (1 / .4),
-      children: List.generate(categoricalExpenses.length, (index) {
+      childAspectRatio: (1 / .4),
+      children: List.generate(januaryExpenses.length, (index) {
         return SizedBox(
-
           child: _buildCard(
             context,
-            categoricalExpenses[index].category,
-            categoricalExpenses[index].amount,
-            categoricalExpenses[index].currency.sign,
+            januaryExpenses[index].category,
+            januaryExpenses[index].amount.toInt(),
+            januaryExpenses[index].currency.sign,
           ),
         );
       }),
     );
   }
 
-  Widget _buildCard(BuildContext context, String title, int amount, String currency) {
+  Widget _buildCard(
+      BuildContext context, String title, int amount, String currency) {
     return Card(
       child: ListTile(
         title: Text(title),
@@ -131,32 +421,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class LinearExpenses {
-  final int column;
-  final int row;
-
-  LinearExpenses(this.column, this.row);
-}
-
-enum Currency {
-  Lira('₺'),
-  Euro('€'),
-  Dollar('\$');
-
-  final String sign;
-  const Currency(this.sign);
-}
-
-
-class CategoricalExpenses {
-  final String category;
-  final int amount;
-  final Currency currency;
-
-  CategoricalExpenses(this.category, this.amount, this.currency);
-}
-
-
 void _showDialog(BuildContext context) {
   showDialog(
     context: context,
@@ -176,7 +440,6 @@ void _showDialog(BuildContext context) {
     },
   );
 }
-
 
 class NewScreen extends StatelessWidget {
   @override
