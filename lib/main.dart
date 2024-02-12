@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'dart:math' as math;
+import 'package:path_provider/path_provider.dart';
 import 'categoricalExpenses.dart';
 import 'monthlyExpenses.dart';
+import './data/expenses.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding
+      .ensureInitialized(); // Ensure that Flutter is initialized
+  final appDocumentDirectory = await getApplicationDocumentsDirectory();
+  final db = AppDatabase();
+  runApp(MyApp(database: db));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key});
+  final AppDatabase database;
+  const MyApp({Key? key, required this.database});
 
   @override
   Widget build(BuildContext context) {
