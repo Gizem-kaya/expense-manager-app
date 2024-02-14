@@ -1,4 +1,4 @@
-import 'models/categoricalExpenses.dart';
+import '../models/categoricalExpenses.dart';
 
 class DummyData {
   DummyData._();

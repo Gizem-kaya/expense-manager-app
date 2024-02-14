@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'components/homePage.dart';
-import './data/expenses.dart';
+import 'database/database.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,12 +15,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Expense Manager',
-      theme: ThemeData(
-        primarySwatch: Colors.blueGrey,
-      ),
-      home: const HomePage(title: 'Expense Manager'),
-    );
+    return Provider(
+        create: (context) => AppDatabase(),
+        child: MaterialApp(
+          title: 'Expense Manager',
+          theme: ThemeData(
+            primarySwatch: Colors.blueGrey,
+          ),
+          home: const HomePage(title: 'Expense Manager'),
+        ));
   }
 }

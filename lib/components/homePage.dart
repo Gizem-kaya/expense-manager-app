@@ -1,7 +1,9 @@
 import 'package:expense_manager/data/dummyData.dart';
+import 'package:expense_manager/database/database.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import '../data/models/monthlyExpenses.dart';
+import 'package:provider/provider.dart';
+import '../models/monthlyExpenses.dart';
 import '../utils.dart';
 import 'categoryPage.dart';
 
@@ -15,151 +17,95 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final betweenSpace = 0.3;
-
+  late AppDatabase database;
   late List<MonthlyExpenses> expensesOf2023;
   @override
   void initState() {
     super.initState();
     expensesOf2023 = [
-      MonthlyExpenses("JAN", DummyData.instance.januaryExpenses),
-      MonthlyExpenses("FEB", DummyData.instance.februaryExpenses),
-      MonthlyExpenses("MAR", DummyData.instance.marchExpenses),
-      MonthlyExpenses("APR", DummyData.instance.aprilExpenses),
-      MonthlyExpenses("MAY", DummyData.instance.mayExpenses),
-      MonthlyExpenses("JUN", DummyData.instance.juneExpenses),
-      MonthlyExpenses("JUL", DummyData.instance.julyExpenses),
-      MonthlyExpenses("AUG", DummyData.instance.augustExpenses),
-      MonthlyExpenses("SEP", DummyData.instance.septemberExpenses),
-      MonthlyExpenses("OCT", DummyData.instance.octoberExpenses),
-      MonthlyExpenses("NOV", DummyData.instance.novemberExpenses),
-      MonthlyExpenses("DEC", DummyData.instance.decemberExpenses),
+      MonthlyExpenses("JAN", 2023, DummyData.instance.januaryExpenses),
+      MonthlyExpenses("FEB", 2023, DummyData.instance.februaryExpenses),
+      MonthlyExpenses("MAR", 2023, DummyData.instance.marchExpenses),
+      MonthlyExpenses("APR", 2023, DummyData.instance.aprilExpenses),
+      MonthlyExpenses("MAY", 2023, DummyData.instance.mayExpenses),
+      MonthlyExpenses("JUN", 2023, DummyData.instance.juneExpenses),
+      MonthlyExpenses("JUL", 2023, DummyData.instance.julyExpenses),
+      MonthlyExpenses("AUG", 2023, DummyData.instance.augustExpenses),
+      MonthlyExpenses("SEP", 2023, DummyData.instance.septemberExpenses),
+      MonthlyExpenses("OCT", 2023, DummyData.instance.octoberExpenses),
+      MonthlyExpenses("NOV", 2023, DummyData.instance.novemberExpenses),
+      MonthlyExpenses("DEC", 2023, DummyData.instance.decemberExpenses),
     ];
-  }
-
-  BarChartGroupData generateGroupData(
-    int x,
-    double food,
-    double gwe,
-    double transportation,
-    double rent,
-    double activities,
-    double insurances,
-  ) {
-    return BarChartGroupData(
-      x: x,
-      groupVertically: true,
-      barRods: [
-        BarChartRodData(
-          fromY: 0,
-          toY: rent,
-          colors: [const Color(0xFFE57373)],
-          width: 8,
-        ),
-        BarChartRodData(
-          fromY: rent + betweenSpace,
-          toY: rent + betweenSpace + food,
-          colors: [const Color(0xFFFFB74D)],
-          width: 8,
-        ),
-        BarChartRodData(
-          fromY: rent + betweenSpace + food + betweenSpace,
-          toY: rent + betweenSpace + food + betweenSpace + gwe,
-          colors: [const Color(0xFFFFD54F)],
-          width: 8,
-        ),
-        BarChartRodData(
-          fromY: rent + betweenSpace + food + betweenSpace + gwe + betweenSpace,
-          toY: rent +
-              betweenSpace +
-              food +
-              betweenSpace +
-              gwe +
-              betweenSpace +
-              transportation,
-          colors: [const Color(0xFF81C784)],
-          width: 8,
-        ),
-        BarChartRodData(
-          fromY: rent +
-              betweenSpace +
-              food +
-              betweenSpace +
-              gwe +
-              betweenSpace +
-              transportation +
-              betweenSpace,
-          toY: rent +
-              betweenSpace +
-              food +
-              betweenSpace +
-              gwe +
-              betweenSpace +
-              transportation +
-              betweenSpace +
-              activities,
-          colors: [const Color(0xFF64B5F6)],
-          width: 8,
-        ),
-        BarChartRodData(
-          fromY: rent +
-              betweenSpace +
-              food +
-              betweenSpace +
-              gwe +
-              betweenSpace +
-              transportation +
-              betweenSpace +
-              activities +
-              betweenSpace,
-          toY: rent +
-              betweenSpace +
-              food +
-              betweenSpace +
-              gwe +
-              betweenSpace +
-              transportation +
-              betweenSpace +
-              activities +
-              betweenSpace +
-              insurances,
-          colors: [const Color(0xFF9575CD)],
-          width: 8,
-        ),
-      ],
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    database = Provider.of<AppDatabase>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            flex: 1,
-            child: _buildGraph(),
-          ),
-          Expanded(
-            flex: 1,
-            child: _buildCardView(),
-          ),
-        ],
+      body: FutureBuilder<List<Expense>>(
+        future: _getExpensesFromDatabase(database),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            print("Waiting for fetching data from database...");
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            print("The database has an error!");
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData) {
+            print("No data in the database!");
+            return Center(child: Text('No data'));
+          } else {
+            List<Expense>? expenses = snapshot.data;
+            print(expenses);
+            if (expenses != null && expenses.isNotEmpty) {
+              return Column(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: _buildGraph(),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: _buildCardView(),
+                  ),
+                ],
+              );
+            } else {
+              return Center(
+                  child: Text(
+                "No expenses found!\n"
+                "Click + button to add a new expense",
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ));
+            }
+          }
+        },
       ),
-
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: _incrementCounter,
-      //   tooltip: 'Increment',
-      //   child: const Icon(Icons.add),
-      // ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          print('Floating action button pressed');
+          addExpenseDialog(context, 2023, "february", "transportation", 210);
+        },
+        child: Icon(Icons.add, color: Colors.white),
+        backgroundColor: Colors.blueGrey,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30.0),
+        ),
+      ),
     );
+  }
+
+  Future<List<Expense>> _getExpensesFromDatabase(AppDatabase database) async {
+    return await database.getAllExpenses();
   }
 
   Widget _buildGraph() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(15, 20, 20, 10),
+      padding: const EdgeInsets.fromLTRB(15, 15, 20, 5),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -200,7 +146,7 @@ class _HomePageState extends State<HomePage> {
                           getTitles: (double value) {
                             int index = value.toInt();
                             if (index >= 0 && index < expensesOf2023.length) {
-                              return expensesOf2023[index].column;
+                              return expensesOf2023[index].month;
                             }
                             return 'error';
                           },
@@ -293,4 +239,99 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+}
+
+BarChartGroupData generateGroupData(
+  int x,
+  double food,
+  double gwe,
+  double transportation,
+  double rent,
+  double activities,
+  double insurances,
+) {
+  final betweenSpace = 0.3;
+
+  return BarChartGroupData(
+    x: x,
+    groupVertically: true,
+    barRods: [
+      BarChartRodData(
+        fromY: 0,
+        toY: rent,
+        colors: [const Color(0xFFE57373)],
+        width: 8,
+      ),
+      BarChartRodData(
+        fromY: rent + betweenSpace,
+        toY: rent + betweenSpace + food,
+        colors: [const Color(0xFFFFB74D)],
+        width: 8,
+      ),
+      BarChartRodData(
+        fromY: rent + betweenSpace + food + betweenSpace,
+        toY: rent + betweenSpace + food + betweenSpace + gwe,
+        colors: [const Color(0xFFFFD54F)],
+        width: 8,
+      ),
+      BarChartRodData(
+        fromY: rent + betweenSpace + food + betweenSpace + gwe + betweenSpace,
+        toY: rent +
+            betweenSpace +
+            food +
+            betweenSpace +
+            gwe +
+            betweenSpace +
+            transportation,
+        colors: [const Color(0xFF81C784)],
+        width: 8,
+      ),
+      BarChartRodData(
+        fromY: rent +
+            betweenSpace +
+            food +
+            betweenSpace +
+            gwe +
+            betweenSpace +
+            transportation +
+            betweenSpace,
+        toY: rent +
+            betweenSpace +
+            food +
+            betweenSpace +
+            gwe +
+            betweenSpace +
+            transportation +
+            betweenSpace +
+            activities,
+        colors: [const Color(0xFF64B5F6)],
+        width: 8,
+      ),
+      BarChartRodData(
+        fromY: rent +
+            betweenSpace +
+            food +
+            betweenSpace +
+            gwe +
+            betweenSpace +
+            transportation +
+            betweenSpace +
+            activities +
+            betweenSpace,
+        toY: rent +
+            betweenSpace +
+            food +
+            betweenSpace +
+            gwe +
+            betweenSpace +
+            transportation +
+            betweenSpace +
+            activities +
+            betweenSpace +
+            insurances,
+        colors: [const Color(0xFF9575CD)],
+        width: 8,
+      ),
+    ],
+  );
 }
