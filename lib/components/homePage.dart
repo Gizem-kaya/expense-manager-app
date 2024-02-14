@@ -1,8 +1,8 @@
 import 'package:expense_manager/data/dummyData.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'dialog.dart';
-import '../monthlyExpenses.dart';
+import '../data/models/monthlyExpenses.dart';
+import '../utils.dart';
 import 'categoryPage.dart';
 
 class HomePage extends StatefulWidget {
