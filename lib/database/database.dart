@@ -2,14 +2,12 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
-import 'package:sqlite3/sqlite3.dart';
+import 'package:drift_sqflite/drift_sqflite.dart';
 import 'package:path/path.dart' as p;
+import 'package:sqflite/sqflite.dart';
 part 'database.g.dart';
 
 class Expenses extends Table {
-  IntColumn get id => integer().autoIncrement()();
   IntColumn get year => integer()();
   TextColumn get month => text()();
   TextColumn get category => text()();
@@ -58,14 +56,13 @@ class AppDatabase extends _$AppDatabase {
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'db.sqlite'));
-    if (Platform.isAndroid) {
-      await applyWorkaroundToOpenSqlite3OnOldAndroidVersions();
-    }
-    final cachebase = (await getTemporaryDirectory()).path;
-    sqlite3.tempDirectory = cachebase;
+    final dbFolder = await getDatabasesPath();
+    final file = File(p.join(dbFolder, 'db.sqlite'));
 
-    return NativeDatabase.createInBackground(file);
+    if (Platform.isAndroid) {
+      return SqfliteQueryExecutor.inDatabaseFolder(path: 'db.sqlite');
+    } else {
+      return NativeDatabase(file);
+    }
   });
 }

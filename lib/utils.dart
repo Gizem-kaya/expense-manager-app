@@ -56,7 +56,6 @@ void addExpenseDialog(BuildContext context, int year, String month,
                   double.tryParse(expenseController.text) ?? 0.0;
               if (newExpense != 0.0) {
                 Expense newExpenseObject = Expense(
-                  id: 0,
                   month: month,
                   year: year,
                   category: category,

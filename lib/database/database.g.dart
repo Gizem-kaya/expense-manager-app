@@ -8,15 +8,6 @@ class $ExpensesTable extends Expenses with TableInfo<$ExpensesTable, Expense> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $ExpensesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
   static const VerificationMeta _yearMeta = const VerificationMeta('year');
   @override
   late final GeneratedColumn<int> year = GeneratedColumn<int>(
@@ -39,7 +30,7 @@ class $ExpensesTable extends Expenses with TableInfo<$ExpensesTable, Expense> {
       'value', aliasedName, true,
       type: DriftSqlType.double, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns => [id, year, month, category, value];
+  List<GeneratedColumn> get $columns => [year, month, category, value];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -50,9 +41,6 @@ class $ExpensesTable extends Expenses with TableInfo<$ExpensesTable, Expense> {
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
     if (data.containsKey('year')) {
       context.handle(
           _yearMeta, year.isAcceptableOrUnknown(data['year']!, _yearMeta));
@@ -79,13 +67,11 @@ class $ExpensesTable extends Expenses with TableInfo<$ExpensesTable, Expense> {
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => const {};
   @override
   Expense map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Expense(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       year: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}year'])!,
       month: attachedDatabase.typeMapping
@@ -104,21 +90,18 @@ class $ExpensesTable extends Expenses with TableInfo<$ExpensesTable, Expense> {
 }
 
 class Expense extends DataClass implements Insertable<Expense> {
-  final int id;
   final int year;
   final String month;
   final String category;
   final double? value;
   const Expense(
-      {required this.id,
-      required this.year,
+      {required this.year,
       required this.month,
       required this.category,
       this.value});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
     map['year'] = Variable<int>(year);
     map['month'] = Variable<String>(month);
     map['category'] = Variable<String>(category);
@@ -130,7 +113,6 @@ class Expense extends DataClass implements Insertable<Expense> {
 
   ExpensesCompanion toCompanion(bool nullToAbsent) {
     return ExpensesCompanion(
-      id: Value(id),
       year: Value(year),
       month: Value(month),
       category: Value(category),
@@ -143,7 +125,6 @@ class Expense extends DataClass implements Insertable<Expense> {
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Expense(
-      id: serializer.fromJson<int>(json['id']),
       year: serializer.fromJson<int>(json['year']),
       month: serializer.fromJson<String>(json['month']),
       category: serializer.fromJson<String>(json['category']),
@@ -154,7 +135,6 @@ class Expense extends DataClass implements Insertable<Expense> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
       'year': serializer.toJson<int>(year),
       'month': serializer.toJson<String>(month),
       'category': serializer.toJson<String>(category),
@@ -163,13 +143,11 @@ class Expense extends DataClass implements Insertable<Expense> {
   }
 
   Expense copyWith(
-          {int? id,
-          int? year,
+          {int? year,
           String? month,
           String? category,
           Value<double?> value = const Value.absent()}) =>
       Expense(
-        id: id ?? this.id,
         year: year ?? this.year,
         month: month ?? this.month,
         category: category ?? this.category,
@@ -178,7 +156,6 @@ class Expense extends DataClass implements Insertable<Expense> {
   @override
   String toString() {
     return (StringBuffer('Expense(')
-          ..write('id: $id, ')
           ..write('year: $year, ')
           ..write('month: $month, ')
           ..write('category: $category, ')
@@ -188,12 +165,11 @@ class Expense extends DataClass implements Insertable<Expense> {
   }
 
   @override
-  int get hashCode => Object.hash(id, year, month, category, value);
+  int get hashCode => Object.hash(year, month, category, value);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Expense &&
-          other.id == this.id &&
           other.year == this.year &&
           other.month == this.month &&
           other.category == this.category &&
@@ -201,64 +177,61 @@ class Expense extends DataClass implements Insertable<Expense> {
 }
 
 class ExpensesCompanion extends UpdateCompanion<Expense> {
-  final Value<int> id;
   final Value<int> year;
   final Value<String> month;
   final Value<String> category;
   final Value<double?> value;
+  final Value<int> rowid;
   const ExpensesCompanion({
-    this.id = const Value.absent(),
     this.year = const Value.absent(),
     this.month = const Value.absent(),
     this.category = const Value.absent(),
     this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   ExpensesCompanion.insert({
-    this.id = const Value.absent(),
     required int year,
     required String month,
     required String category,
     this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
   })  : year = Value(year),
         month = Value(month),
         category = Value(category);
   static Insertable<Expense> custom({
-    Expression<int>? id,
     Expression<int>? year,
     Expression<String>? month,
     Expression<String>? category,
     Expression<double>? value,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (id != null) 'id': id,
       if (year != null) 'year': year,
       if (month != null) 'month': month,
       if (category != null) 'category': category,
       if (value != null) 'value': value,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   ExpensesCompanion copyWith(
-      {Value<int>? id,
-      Value<int>? year,
+      {Value<int>? year,
       Value<String>? month,
       Value<String>? category,
-      Value<double?>? value}) {
+      Value<double?>? value,
+      Value<int>? rowid}) {
     return ExpensesCompanion(
-      id: id ?? this.id,
       year: year ?? this.year,
       month: month ?? this.month,
       category: category ?? this.category,
       value: value ?? this.value,
+      rowid: rowid ?? this.rowid,
     );
   }
 
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
     if (year.present) {
       map['year'] = Variable<int>(year.value);
     }
@@ -271,17 +244,20 @@ class ExpensesCompanion extends UpdateCompanion<Expense> {
     if (value.present) {
       map['value'] = Variable<double>(value.value);
     }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
     return map;
   }
 
   @override
   String toString() {
     return (StringBuffer('ExpensesCompanion(')
-          ..write('id: $id, ')
           ..write('year: $year, ')
           ..write('month: $month, ')
           ..write('category: $category, ')
-          ..write('value: $value')
+          ..write('value: $value, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
