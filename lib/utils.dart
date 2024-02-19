@@ -56,9 +56,9 @@ void addExpenseDialog(BuildContext context, int year, String month,
                   double.tryParse(expenseController.text) ?? 0.0;
               if (newExpense != 0.0) {
                 Expense newExpenseObject = Expense(
-                  month: month,
+                  month: month.toLowerCase(),
                   year: year,
-                  category: category,
+                  category: category.toLowerCase(),
                   value: newExpense,
                 );
 
@@ -85,4 +85,35 @@ void addExpenseDialog(BuildContext context, int year, String month,
       );
     },
   );
+}
+
+String getAbbreviation(String longMonthName) {
+  switch (longMonthName) {
+    case 'january':
+      return 'JAN';
+    case 'february':
+      return 'FEB';
+    case 'march':
+      return 'MAR';
+    case 'april':
+      return 'APR';
+    case 'may':
+      return 'MAY';
+    case 'june':
+      return 'JUN';
+    case 'july':
+      return 'JUL';
+    case 'august':
+      return 'AUG';
+    case 'september':
+      return 'SEP';
+    case 'october':
+      return 'OCT';
+    case 'november':
+      return 'NOV';
+    case 'december':
+      return 'DEC';
+    default:
+      throw Exception('Month name is not correct!');
+  }
 }

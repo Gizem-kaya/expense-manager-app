@@ -1,5 +1,6 @@
 import 'package:expense_manager/data/dummyData.dart';
 import 'package:expense_manager/database/database.dart';
+import 'package:expense_manager/models/categoricalExpenses.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -65,7 +66,7 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Expanded(
                     flex: 1,
-                    child: _buildGraph(),
+                    child: _buildGraph(expenses),
                   ),
                   Expanded(
                     flex: 1,
@@ -88,7 +89,7 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           print('Floating action button pressed');
-          addExpenseDialog(context, 2023, "february", "transportation", 210);
+          addExpenseDialog(context, 2023, "march", "transportation", 210);
         },
         child: Icon(Icons.add, color: Colors.white),
         backgroundColor: Colors.blueGrey,
@@ -103,7 +104,29 @@ class _HomePageState extends State<HomePage> {
     return await database.getAllExpenses();
   }
 
-  Widget _buildGraph() {
+  List<MonthlyExpenses> _createMonthlyExpenses(List<Expense> expenses) {
+    List<MonthlyExpenses> monthlyExpenses = [];
+
+    expenses.forEach((expense) {
+      int index = monthlyExpenses.indexWhere((monthlyExpense) =>
+          expense.year == monthlyExpense.year &&
+          expense.month == monthlyExpense.month);
+      if (index == -1) {
+        monthlyExpenses.add(MonthlyExpenses(expense.month, expense.year, [
+          CategoricalExpenses(
+              expense.category, expense.value!.toInt(), Currency.Euro)
+        ]));
+      } else {
+        monthlyExpenses[index].categoricalExpensesList.add(CategoricalExpenses(
+            expense.category, expense.value!.toInt(), Currency.Euro));
+      }
+    });
+
+    return monthlyExpenses;
+  }
+
+  Widget _buildGraph(List<Expense> expenses) {
+    List<MonthlyExpenses> monthlyExpenses = _createMonthlyExpenses(expenses);
     return Padding(
       padding: const EdgeInsets.fromLTRB(15, 15, 20, 5),
       child: Column(
@@ -130,7 +153,7 @@ class _HomePageState extends State<HomePage> {
                       barTouchData: BarTouchData(enabled: false),
                       borderData: FlBorderData(show: false),
                       gridData: FlGridData(show: false),
-                      maxY: expensesOf2023
+                      maxY: monthlyExpenses
                               .map((monthlyExpense) =>
                                   monthlyExpense.getTotalExpense())
                               .reduce((value, element) =>
@@ -145,8 +168,9 @@ class _HomePageState extends State<HomePage> {
                           margin: 10,
                           getTitles: (double value) {
                             int index = value.toInt();
-                            if (index >= 0 && index < expensesOf2023.length) {
-                              return expensesOf2023[index].month;
+                            if (index >= 0 && index < monthlyExpenses.length) {
+                              return getAbbreviation(
+                                  monthlyExpenses[index].month);
                             }
                             return 'error';
                           },
@@ -162,30 +186,30 @@ class _HomePageState extends State<HomePage> {
                         rightTitles: SideTitles(showTitles: false),
                       ),
                       barGroups: List.generate(
-                        expensesOf2023.length,
+                        monthlyExpenses.length,
                         (index) => generateGroupData(
                           index,
-                          expensesOf2023[index]
+                          monthlyExpenses[index]
                               .categoricalExpensesList[0]
                               .amount
                               .toDouble(),
-                          expensesOf2023[index]
+                          monthlyExpenses[index]
                               .categoricalExpensesList[1]
                               .amount
                               .toDouble(),
-                          expensesOf2023[index]
+                          monthlyExpenses[index]
                               .categoricalExpensesList[2]
                               .amount
                               .toDouble(),
-                          expensesOf2023[index]
+                          monthlyExpenses[index]
                               .categoricalExpensesList[3]
                               .amount
                               .toDouble(),
-                          expensesOf2023[index]
+                          monthlyExpenses[index]
                               .categoricalExpensesList[4]
                               .amount
                               .toDouble(),
-                          expensesOf2023[index]
+                          monthlyExpenses[index]
                               .categoricalExpensesList[5]
                               .amount
                               .toDouble(),

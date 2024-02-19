@@ -23,8 +23,25 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<Expense>> getAllExpenses() async => await select(expenses).get();
   Stream<List<Expense>> watchAllExpenses() => select(expenses).watch();
-  Future insertNewExpense(Expense expense) async =>
-      await into(expenses).insert(expense);
+  Future insertNewExpense(Expense expense) async {
+    // Check if the combination of year, month, and category already exists
+    final existingExpense = await (select(expenses)
+          ..where((t) =>
+              t.year.equals(expense.year) &
+              t.month.equals(expense.month) &
+              t.category.equals(expense.category)))
+        .getSingleOrNull();
+
+    // If the combination already exists, return an error or handle it accordingly
+    if (existingExpense != null) {
+      throw Exception(
+          'An expense with the same year, month, and category already exists.');
+    }
+
+    // Otherwise, insert the new expense
+    await into(expenses).insert(expense);
+  }
+
   Future deleteExpense(Expense expense) async =>
       await delete(expenses).delete(expense);
 
