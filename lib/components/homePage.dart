@@ -3,6 +3,7 @@ import 'package:expense_manager/database/database.dart';
 import 'package:expense_manager/models/categoricalExpenses.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import '../models/monthlyExpenses.dart';
 import '../utils.dart';
@@ -20,6 +21,13 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late AppDatabase database;
   late int selectedYear;
+  late String selectedMonth;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedMonth = 'december';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +60,30 @@ class _HomePageState extends State<HomePage> {
                   ),
                   Expanded(
                     flex: 1,
-                    child: _buildCardView(),
+                    child: Container(
+                      margin: EdgeInsets.all(10),
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            selectedMonth,
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: _buildCardView(),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               );
@@ -217,7 +248,7 @@ class _HomePageState extends State<HomePage> {
     return GridView.count(
       crossAxisCount: 2,
       childAspectRatio: (1 / .5),
-      padding: EdgeInsets.all(15.0),
+      padding: EdgeInsets.all(10.0),
       crossAxisSpacing: 15.0,
       mainAxisSpacing: 15.0,
       children:
