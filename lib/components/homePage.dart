@@ -22,11 +22,13 @@ class _HomePageState extends State<HomePage> {
   late AppDatabase database;
   late int selectedYear;
   late String selectedMonth;
+  late Currency selectedCurrency;
 
   @override
   void initState() {
     super.initState();
     selectedMonth = 'december';
+    selectedCurrency = Currency.Euro;
   }
 
   @override
@@ -60,30 +62,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   Expanded(
                     flex: 1,
-                    child: Container(
-                      margin: EdgeInsets.all(10),
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            selectedMonth,
-                            style: TextStyle(
-                              color: Colors.blue,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Expanded(
-                            flex: 1,
-                            child: _buildCardView(),
-                          ),
-                        ],
-                      ),
-                    ),
+                    child: _buildCardContainer(expenses),
                   ),
                 ],
               );
@@ -141,6 +120,33 @@ class _HomePageState extends State<HomePage> {
     return monthlyExpenses
         .where((expense) => expense.year == selectedYear)
         .toList();
+  }
+
+  Widget _buildCardContainer(List<Expense> expenses) {
+    return Container(
+      margin: EdgeInsets.all(10),
+      padding: EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Column(
+        children: [
+          Text(
+            capitalize(selectedMonth),
+            style: TextStyle(
+              color: Colors.blue,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: _buildCardView(expenses),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildGraph(List<Expense> expenses) {
@@ -244,53 +250,42 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildCardView() {
+  Widget _buildCardView(List<Expense> expenses) {
+    List<CategoricalExpenses> categoricalExpenses =
+        _getCategoricalExpensesOf(expenses);
+
     return GridView.count(
       crossAxisCount: 2,
       childAspectRatio: (1 / .5),
       padding: EdgeInsets.all(10.0),
       crossAxisSpacing: 15.0,
       mainAxisSpacing: 15.0,
-      children:
-          List.generate(DummyData.instance.januaryExpenses.length, (index) {
+      children: List.generate(categoricalExpenses.length, (index) {
         return SizedBox(
           child: _buildCard(
             context,
-            DummyData.instance.januaryExpenses[index].category,
-            DummyData.instance.januaryExpenses[index].amount.toInt(),
-            DummyData.instance.januaryExpenses[index].currency.sign,
+            categoricalExpenses[index].category,
+            categoricalExpenses[index].amount.toInt(),
+            categoricalExpenses[index].currency.sign,
           ),
         );
       }),
     );
   }
 
+  List<CategoricalExpenses> _getCategoricalExpensesOf(List<Expense> expenses) {
+    List<CategoricalExpenses> categoricalExpenses = [];
+    expenses.forEach((expense) {
+      if (expense.year == selectedYear && expense.month == selectedMonth)
+        categoricalExpenses.add(CategoricalExpenses(
+            expense.category, expense.value?.toInt() ?? 0, selectedCurrency));
+    });
+    return categoricalExpenses;
+  }
+
   Widget _buildCard(
       BuildContext context, String title, int amount, String currency) {
-    late Color color;
-    switch (title) {
-      case 'Food':
-        color = const Color(0xFFFFB74D);
-        break;
-      case 'GWE':
-        color = const Color(0xFFFFD54F);
-        break;
-      case 'Transportation':
-        color = const Color(0xFF81C784);
-        break;
-      case 'Rent':
-        color = const Color(0xFFE57373);
-        break;
-      case 'Activities':
-        color = const Color(0xFF64B5F6);
-        break;
-      case 'Insurances':
-        color = const Color(0xFF9575CD);
-        break;
-      default:
-        color = Colors.blue;
-        break;
-    }
+    Color color = getColors(title);
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -300,7 +295,7 @@ class _HomePageState extends State<HomePage> {
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
         title: Text(
-          title,
+          capitalize(title),
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -316,8 +311,8 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         trailing: Container(
-          width: 45,
-          height: 45,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.white.withOpacity(0.3),
@@ -326,7 +321,7 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(
               Icons.add,
               color: Colors.white,
-              size: 30,
+              size: 20,
             ),
             onPressed: () => increaseExpenseDialog(context),
           ),

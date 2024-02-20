@@ -117,3 +117,26 @@ String getAbbreviation(String longMonthName) {
       throw Exception('Month name is not correct!');
   }
 }
+
+String capitalize(String text) {
+  return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
+}
+
+Color getColors(String text) {
+  switch (text) {
+    case 'food':
+      return Color(0xFFFFB74D);
+    case 'gwe':
+      return const Color(0xFFFFD54F);
+    case 'transportation':
+      return const Color(0xFF81C784);
+    case 'rent':
+      return const Color(0xFFE57373);
+    case 'activities':
+      return const Color(0xFF64B5F6);
+    case 'insurances':
+      return const Color(0xFF9575CD);
+    default:
+      return Colors.blue;
+  }
+}
