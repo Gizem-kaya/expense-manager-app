@@ -19,25 +19,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late AppDatabase database;
-  late List<MonthlyExpenses> expensesOf2023;
-  @override
-  void initState() {
-    super.initState();
-    expensesOf2023 = [
-      MonthlyExpenses("JAN", 2023, DummyData.instance.januaryExpenses),
-      MonthlyExpenses("FEB", 2023, DummyData.instance.februaryExpenses),
-      MonthlyExpenses("MAR", 2023, DummyData.instance.marchExpenses),
-      MonthlyExpenses("APR", 2023, DummyData.instance.aprilExpenses),
-      MonthlyExpenses("MAY", 2023, DummyData.instance.mayExpenses),
-      MonthlyExpenses("JUN", 2023, DummyData.instance.juneExpenses),
-      MonthlyExpenses("JUL", 2023, DummyData.instance.julyExpenses),
-      MonthlyExpenses("AUG", 2023, DummyData.instance.augustExpenses),
-      MonthlyExpenses("SEP", 2023, DummyData.instance.septemberExpenses),
-      MonthlyExpenses("OCT", 2023, DummyData.instance.octoberExpenses),
-      MonthlyExpenses("NOV", 2023, DummyData.instance.novemberExpenses),
-      MonthlyExpenses("DEC", 2023, DummyData.instance.decemberExpenses),
-    ];
-  }
+  late int selectedYear;
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +89,8 @@ class _HomePageState extends State<HomePage> {
   List<MonthlyExpenses> _createMonthlyExpenses(List<Expense> expenses) {
     List<MonthlyExpenses> monthlyExpenses = [];
 
+    int maxYear = 0;
+
     expenses.forEach((expense) {
       int index = monthlyExpenses.indexWhere((monthlyExpense) =>
           expense.year == monthlyExpense.year &&
@@ -120,9 +104,12 @@ class _HomePageState extends State<HomePage> {
         monthlyExpenses[index].categoricalExpensesList.add(CategoricalExpenses(
             expense.category, expense.value!.toInt(), Currency.Euro));
       }
+      selectedYear = expense.year > maxYear ? expense.year : maxYear;
     });
 
-    return monthlyExpenses;
+    return monthlyExpenses
+        .where((expense) => expense.year == selectedYear)
+        .toList();
   }
 
   Widget _buildGraph(List<Expense> expenses) {
@@ -229,7 +216,10 @@ class _HomePageState extends State<HomePage> {
   Widget _buildCardView() {
     return GridView.count(
       crossAxisCount: 2,
-      childAspectRatio: (1 / .4),
+      childAspectRatio: (1 / .5),
+      padding: EdgeInsets.all(15.0),
+      crossAxisSpacing: 15.0,
+      mainAxisSpacing: 15.0,
       children:
           List.generate(DummyData.instance.januaryExpenses.length, (index) {
         return SizedBox(
@@ -246,13 +236,69 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildCard(
       BuildContext context, String title, int amount, String currency) {
+    late Color color;
+    switch (title) {
+      case 'Food':
+        color = const Color(0xFFFFB74D);
+        break;
+      case 'GWE':
+        color = const Color(0xFFFFD54F);
+        break;
+      case 'Transportation':
+        color = const Color(0xFF81C784);
+        break;
+      case 'Rent':
+        color = const Color(0xFFE57373);
+        break;
+      case 'Activities':
+        color = const Color(0xFF64B5F6);
+        break;
+      case 'Insurances':
+        color = const Color(0xFF9575CD);
+        break;
+      default:
+        color = Colors.blue;
+        break;
+    }
     return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      color: color,
       child: ListTile(
-        title: Text(title),
-        subtitle: Text('$amount $currency'),
-        trailing: IconButton(
-          icon: Icon(Icons.add),
-          onPressed: () => increaseExpenseDialog(context),
+        contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Colors.white,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          '$amount $currency',
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.white70,
+          ),
+        ),
+        trailing: Container(
+          width: 45,
+          height: 45,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white.withOpacity(0.3),
+          ),
+          child: IconButton(
+            icon: Icon(
+              Icons.add,
+              color: Colors.white,
+              size: 30,
+            ),
+            onPressed: () => increaseExpenseDialog(context),
+          ),
         ),
         onTap: () {
           Navigator.push(
