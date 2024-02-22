@@ -42,6 +42,29 @@ class AppDatabase extends _$AppDatabase {
     await into(expenses).insert(expense);
   }
 
+  Future updateExpense(Expense updatedExpense) async {
+    // Check if the expense exists
+    final existingExpense = await (select(expenses)
+          ..where((t) =>
+              t.year.equals(updatedExpense.year) &
+              t.month.equals(updatedExpense.month) &
+              t.category.equals(updatedExpense.category)))
+        .getSingleOrNull();
+
+    // If the expense does not exist, throw an error or handle it accordingly
+    if (existingExpense == null) {
+      throw Exception('Expense does not exist.');
+    }
+
+    // Update the expense
+    await (update(expenses)
+          ..where((t) =>
+              t.year.equals(updatedExpense.year) &
+              t.month.equals(updatedExpense.month) &
+              t.category.equals(updatedExpense.category)))
+        .write(updatedExpense);
+  }
+
   Future deleteExpense(Expense expense) async =>
       await delete(expenses).delete(expense);
 

@@ -21,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   late AppDatabase database;
   late int selectedYear;
   late String selectedMonth;
+  int renders = 0;
   late Currency selectedCurrency;
 
   @override
@@ -166,6 +167,8 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: CupertinoPicker(
                   itemExtent: 40.0,
+                  scrollController: FixedExtentScrollController(
+                      initialItem: months.indexOf(capitalize(selectedMonth))),
                   onSelectedItemChanged: (int index) {
                     setState(() {
                       selectedMonth = months[index];
@@ -381,7 +384,31 @@ class _HomePageState extends State<HomePage> {
               color: Colors.white,
               size: 20,
             ),
-            onPressed: () => increaseExpenseDialog(context),
+            onPressed: () async {
+              double? enteredValue =
+                  await increaseExpenseDialog(context, title, amount);
+              double updatedValue = enteredValue != null
+                  ? (amount + enteredValue).toDouble()
+                  : -1;
+              if (updatedValue >= 0) {
+                database
+                    .updateExpense(Expense(
+                        year: selectedYear,
+                        month: selectedMonth,
+                        category: title,
+                        value: updatedValue))
+                    .then((value) => setState(() {}));
+              } else {
+                final snackBar = SnackBar(
+                  content: const Text('You can not go under zero!'),
+                  action: SnackBarAction(
+                    label: 'OK',
+                    onPressed: () {},
+                  ),
+                );
+                ScaffoldMessenger.of(context).showSnackBar(snackBar);
+              }
+            },
           ),
         ),
         onTap: () {

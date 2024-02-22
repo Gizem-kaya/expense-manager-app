@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_manager/database/database.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 final List<String> months = [
@@ -18,19 +21,47 @@ final List<String> months = [
   'December',
 ];
 
-void increaseExpenseDialog(BuildContext context) {
-  showDialog(
+Future<double?> increaseExpenseDialog(
+  BuildContext context,
+  String category,
+  int price,
+) async {
+  return showDialog<double>(
     context: context,
     builder: (BuildContext context) {
+      TextEditingController _textEditingController = TextEditingController();
+
       return AlertDialog(
-        title: Text('Dialog Title'),
-        content: Text('This is a dialog.'),
+        title: Text(capitalize(category)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            TextField(
+              controller: _textEditingController,
+              decoration: InputDecoration(labelText: "Enter the amount"),
+              keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.allow(
+                  RegExp(r'^-?\d*\.?\d*$'),
+                ),
+              ],
+            ),
+          ],
+        ),
         actions: <Widget>[
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: Text('Close'),
+            child: Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () {
+              double? enteredValue =
+                  double.tryParse(_textEditingController.text);
+              Navigator.of(context).pop(enteredValue);
+            },
+            child: Text('ADD'),
           ),
         ],
       );
