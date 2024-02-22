@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_manager/database/database.dart';
 import 'package:provider/provider.dart';
@@ -139,4 +140,99 @@ Color getColors(String text) {
     default:
       return Colors.blue;
   }
+}
+
+BarChartGroupData generateGroupData(
+  int x,
+  double food,
+  double gwe,
+  double transportation,
+  double rent,
+  double activities,
+  double insurances,
+) {
+  final betweenSpace = 0.3;
+
+  return BarChartGroupData(
+    x: x,
+    groupVertically: true,
+    barRods: [
+      BarChartRodData(
+        fromY: 0,
+        toY: rent,
+        colors: [const Color(0xFFE57373)],
+        width: 8,
+      ),
+      BarChartRodData(
+        fromY: rent + betweenSpace,
+        toY: rent + betweenSpace + food,
+        colors: [const Color(0xFFFFB74D)],
+        width: 8,
+      ),
+      BarChartRodData(
+        fromY: rent + betweenSpace + food + betweenSpace,
+        toY: rent + betweenSpace + food + betweenSpace + gwe,
+        colors: [const Color(0xFFFFD54F)],
+        width: 8,
+      ),
+      BarChartRodData(
+        fromY: rent + betweenSpace + food + betweenSpace + gwe + betweenSpace,
+        toY: rent +
+            betweenSpace +
+            food +
+            betweenSpace +
+            gwe +
+            betweenSpace +
+            transportation,
+        colors: [const Color(0xFF81C784)],
+        width: 8,
+      ),
+      BarChartRodData(
+        fromY: rent +
+            betweenSpace +
+            food +
+            betweenSpace +
+            gwe +
+            betweenSpace +
+            transportation +
+            betweenSpace,
+        toY: rent +
+            betweenSpace +
+            food +
+            betweenSpace +
+            gwe +
+            betweenSpace +
+            transportation +
+            betweenSpace +
+            activities,
+        colors: [const Color(0xFF64B5F6)],
+        width: 8,
+      ),
+      BarChartRodData(
+        fromY: rent +
+            betweenSpace +
+            food +
+            betweenSpace +
+            gwe +
+            betweenSpace +
+            transportation +
+            betweenSpace +
+            activities +
+            betweenSpace,
+        toY: rent +
+            betweenSpace +
+            food +
+            betweenSpace +
+            gwe +
+            betweenSpace +
+            transportation +
+            betweenSpace +
+            activities +
+            betweenSpace +
+            insurances,
+        colors: [const Color(0xFF9575CD)],
+        width: 8,
+      ),
+    ],
+  );
 }

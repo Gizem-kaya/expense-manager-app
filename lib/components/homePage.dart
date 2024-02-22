@@ -1,9 +1,7 @@
-import 'package:expense_manager/data/dummyData.dart';
 import 'package:expense_manager/database/database.dart';
 import 'package:expense_manager/models/categoricalExpenses.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import '../models/monthlyExpenses.dart';
 import '../utils.dart';
@@ -37,6 +35,15 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () {
+              print('Add button pressed');
+              addExpenseDialog(context, 2023, "march", "transportation", 210);
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<Expense>>(
         future: _getExpensesFromDatabase(database),
@@ -52,7 +59,6 @@ class _HomePageState extends State<HomePage> {
             return Center(child: Text('No data'));
           } else {
             List<Expense>? expenses = snapshot.data;
-            print(expenses);
             if (expenses != null && expenses.isNotEmpty) {
               return Column(
                 children: [
@@ -77,17 +83,6 @@ class _HomePageState extends State<HomePage> {
             }
           }
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          print('Floating action button pressed');
-          addExpenseDialog(context, 2023, "march", "transportation", 210);
-        },
-        child: Icon(Icons.add, color: Colors.white),
-        backgroundColor: Colors.blueGrey,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30.0),
-        ),
       ),
     );
   }
@@ -127,16 +122,26 @@ class _HomePageState extends State<HomePage> {
       margin: EdgeInsets.all(10),
       padding: EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(30),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: Offset(0, 3), // changes position of shadow
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             capitalize(selectedMonth),
+            textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.blue,
-              fontSize: 15,
+              color: Colors.blueAccent,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -335,99 +340,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-}
-
-BarChartGroupData generateGroupData(
-  int x,
-  double food,
-  double gwe,
-  double transportation,
-  double rent,
-  double activities,
-  double insurances,
-) {
-  final betweenSpace = 0.3;
-
-  return BarChartGroupData(
-    x: x,
-    groupVertically: true,
-    barRods: [
-      BarChartRodData(
-        fromY: 0,
-        toY: rent,
-        colors: [const Color(0xFFE57373)],
-        width: 8,
-      ),
-      BarChartRodData(
-        fromY: rent + betweenSpace,
-        toY: rent + betweenSpace + food,
-        colors: [const Color(0xFFFFB74D)],
-        width: 8,
-      ),
-      BarChartRodData(
-        fromY: rent + betweenSpace + food + betweenSpace,
-        toY: rent + betweenSpace + food + betweenSpace + gwe,
-        colors: [const Color(0xFFFFD54F)],
-        width: 8,
-      ),
-      BarChartRodData(
-        fromY: rent + betweenSpace + food + betweenSpace + gwe + betweenSpace,
-        toY: rent +
-            betweenSpace +
-            food +
-            betweenSpace +
-            gwe +
-            betweenSpace +
-            transportation,
-        colors: [const Color(0xFF81C784)],
-        width: 8,
-      ),
-      BarChartRodData(
-        fromY: rent +
-            betweenSpace +
-            food +
-            betweenSpace +
-            gwe +
-            betweenSpace +
-            transportation +
-            betweenSpace,
-        toY: rent +
-            betweenSpace +
-            food +
-            betweenSpace +
-            gwe +
-            betweenSpace +
-            transportation +
-            betweenSpace +
-            activities,
-        colors: [const Color(0xFF64B5F6)],
-        width: 8,
-      ),
-      BarChartRodData(
-        fromY: rent +
-            betweenSpace +
-            food +
-            betweenSpace +
-            gwe +
-            betweenSpace +
-            transportation +
-            betweenSpace +
-            activities +
-            betweenSpace,
-        toY: rent +
-            betweenSpace +
-            food +
-            betweenSpace +
-            gwe +
-            betweenSpace +
-            transportation +
-            betweenSpace +
-            activities +
-            betweenSpace +
-            insurances,
-        colors: [const Color(0xFF9575CD)],
-        width: 8,
-      ),
-    ],
-  );
 }
