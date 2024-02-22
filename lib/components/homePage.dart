@@ -1,6 +1,7 @@
 import 'package:expense_manager/database/database.dart';
 import 'package:expense_manager/models/categoricalExpenses.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/monthlyExpenses.dart';
@@ -136,14 +137,14 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            capitalize(selectedMonth),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.blueAccent,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+          TextButton(
+            style: TextButton.styleFrom(
+              textStyle: const TextStyle(fontSize: 20),
             ),
+            onPressed: () {
+              _showMonthPicker(context);
+            },
+            child: Text(capitalize(selectedMonth)),
           ),
           Expanded(
             flex: 1,
@@ -152,6 +153,58 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+
+  Future<void> _showMonthPicker(BuildContext context) async {
+    final String? month = await showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          height: 200.0,
+          child: Column(
+            children: [
+              Expanded(
+                child: CupertinoPicker(
+                  itemExtent: 40.0,
+                  onSelectedItemChanged: (int index) {
+                    setState(() {
+                      selectedMonth = months[index];
+                    });
+                  },
+                  children: List.generate(months.length, (index) {
+                    return Center(
+                      child: Text(
+                        months[index],
+                        style: TextStyle(fontSize: 20.0),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(context, selectedMonth);
+                },
+                child: Container(
+                  padding: EdgeInsets.all(16.0),
+                  color: Colors.grey[200],
+                  child: Text(
+                    'OK',
+                    style: TextStyle(fontSize: 20.0),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (month != null) {
+      setState(() {
+        selectedMonth = month.toLowerCase();
+      });
+    }
   }
 
   Widget _buildGraph(List<Expense> expenses) {

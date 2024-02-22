@@ -3,6 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:expense_manager/database/database.dart';
 import 'package:provider/provider.dart';
 
+final List<String> months = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
 void increaseExpenseDialog(BuildContext context) {
   showDialog(
     context: context,
