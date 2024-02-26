@@ -8,10 +8,10 @@ enum Currency {
   const Currency(this.sign);
 }
 
-class CategoricalExpenses {
+class CategoricalExpense {
   final String category;
   final int amount;
   final Currency currency;
 
-  CategoricalExpenses(this.category, this.amount, this.currency);
+  CategoricalExpense(this.category, this.amount, this.currency);
 }

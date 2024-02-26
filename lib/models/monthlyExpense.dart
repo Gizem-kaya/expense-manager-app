@@ -1,11 +1,11 @@
-import 'categoricalExpenses.dart';
+import 'categoricalExpense.dart';
 
-class MonthlyExpenses {
+class MonthlyExpense {
   final String month;
   final int year;
-  List<CategoricalExpenses> categoricalExpensesList;
+  List<CategoricalExpense> categoricalExpensesList;
 
-  MonthlyExpenses(this.month, this.year, this.categoricalExpensesList);
+  MonthlyExpense(this.month, this.year, this.categoricalExpensesList);
 
   getTotalExpense() {
     double total = 0;

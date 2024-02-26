@@ -21,6 +21,15 @@ final List<String> months = [
   'December',
 ];
 
+final List<String> categories = [
+  'food',
+  'transportation',
+  'gwe',
+  'rent',
+  'insurances',
+  'activities',
+];
+
 Future<double?> increaseExpenseDialog(
   BuildContext context,
   String category,
@@ -69,9 +78,8 @@ Future<double?> increaseExpenseDialog(
   );
 }
 
-void addExpenseDialog(BuildContext context, int year, String month,
-    String category, double expense) {
-  TextEditingController expenseController = TextEditingController();
+void addNewYearDialog(BuildContext context, int year) {
+  TextEditingController yearController = TextEditingController();
 
   showDialog(
     context: context,
@@ -84,8 +92,8 @@ void addExpenseDialog(BuildContext context, int year, String month,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             TextField(
-              controller: expenseController,
-              decoration: InputDecoration(labelText: 'Expense'),
+              controller: yearController,
+              decoration: InputDecoration(labelText: 'Year'),
               keyboardType: TextInputType.numberWithOptions(decimal: true),
             ),
           ],
@@ -99,31 +107,32 @@ void addExpenseDialog(BuildContext context, int year, String month,
           ),
           TextButton(
             onPressed: () {
-              double newExpense =
-                  double.tryParse(expenseController.text) ?? 0.0;
-              if (newExpense != 0.0) {
-                Expense newExpenseObject = Expense(
-                  month: month.toLowerCase(),
-                  year: year,
-                  category: category.toLowerCase(),
-                  value: newExpense,
-                );
-
-                database.insertNewExpense(newExpenseObject).then((value) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Expense added successfully')),
-                  );
-                }).catchError((error) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to add expense: $error')),
-                  );
-                });
+              int? selectedYear = int.tryParse(yearController.text);
+              if (selectedYear == null) {
+                SnackBar(content: Text('Please enter a valid year'));
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('Please enter a valid expense amount')),
-                );
+                months.forEach((month) {
+                  categories.forEach((category) {
+                    Expense newExpenseObject = Expense(
+                      month: month.toLowerCase(),
+                      year: selectedYear,
+                      category: category.toLowerCase(),
+                      value: 0.0,
+                    );
+
+                    database.insertNewExpense(newExpenseObject).then((value) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Expense added successfully')),
+                      );
+                    }).catchError((error) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Failed to add expense: $error')),
+                      );
+                    });
+                  });
+                });
               }
             },
             child: Text('Add'),
@@ -191,8 +200,8 @@ Color getColors(String text) {
 BarChartGroupData generateGroupData(
   int x,
   double food,
-  double gwe,
   double transportation,
+  double gwe,
   double rent,
   double activities,
   double insurances,
@@ -250,7 +259,7 @@ BarChartGroupData generateGroupData(
             betweenSpace +
             transportation +
             betweenSpace +
-            activities,
+            insurances,
         colors: [const Color(0xFF64B5F6)],
         width: 8,
       ),
@@ -263,7 +272,7 @@ BarChartGroupData generateGroupData(
             betweenSpace +
             transportation +
             betweenSpace +
-            activities +
+            insurances +
             betweenSpace,
         toY: rent +
             betweenSpace +
@@ -273,12 +282,16 @@ BarChartGroupData generateGroupData(
             betweenSpace +
             transportation +
             betweenSpace +
-            activities +
+            insurances +
             betweenSpace +
-            insurances,
+            activities,
         colors: [const Color(0xFF9575CD)],
         width: 8,
       ),
     ],
   );
+}
+
+bool isItemFound(int index) {
+  return index != -1;
 }
