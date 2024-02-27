@@ -43,7 +43,11 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.add),
             onPressed: () {
               print('Add button pressed');
-              addNewYearDialog(context);
+              addNewYearDialog(context).then((_) {
+                setState(() {
+                  // Refresh the UI here
+                });
+              });
             },
           ),
         ],
@@ -168,6 +172,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _showMonthPicker(BuildContext context) async {
+    String _selectedMonth = selectedMonth;
     final String? month = await showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -181,9 +186,7 @@ class _HomePageState extends State<HomePage> {
                   scrollController: FixedExtentScrollController(
                       initialItem: months.indexOf(capitalize(selectedMonth))),
                   onSelectedItemChanged: (int index) {
-                    setState(() {
-                      selectedMonth = months[index];
-                    });
+                    _selectedMonth = months[index];
                   },
                   children: List.generate(months.length, (index) {
                     return Center(
@@ -197,6 +200,9 @@ class _HomePageState extends State<HomePage> {
               ),
               GestureDetector(
                 onTap: () {
+                  setState(() {
+                    selectedMonth = _selectedMonth;
+                  });
                   Navigator.pop(context, selectedMonth);
                 },
                 child: Container(

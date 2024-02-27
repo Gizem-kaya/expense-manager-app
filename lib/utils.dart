@@ -78,10 +78,11 @@ Future<double?> increaseExpenseDialog(
   );
 }
 
-void addNewYearDialog(BuildContext context) {
+Future<void> addNewYearDialog(BuildContext context) async {
   TextEditingController yearController = TextEditingController();
+  Completer<void> completer = Completer<void>(); // Create a Completer
 
-  showDialog(
+  await showDialog(
     context: context,
     builder: (BuildContext context) {
       late AppDatabase database;
@@ -106,10 +107,12 @@ void addNewYearDialog(BuildContext context) {
             child: Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               int? selectedYear = int.tryParse(yearController.text);
               if (selectedYear == null) {
-                SnackBar(content: Text('Please enter a valid year'));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Please enter a valid year')),
+                );
               } else {
                 List<Expense> expenses = [];
                 months.forEach((month) {
@@ -123,16 +126,19 @@ void addNewYearDialog(BuildContext context) {
                   });
                 });
 
-                database.insertListOfExpenses(expenses).then((value) {
-                  Navigator.of(context).pop();
+                try {
+                  await database.insertListOfExpenses(expenses);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Expense added successfully')),
                   );
-                }).catchError((error) {
+                } catch (error) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Failed to add expense: $error')),
                   );
-                });
+                } finally {
+                  completer.complete(); // Complete the Future when done
+                  Navigator.of(context).pop(); // Close dialog
+                }
               }
             },
             child: Text('Add'),
@@ -141,6 +147,8 @@ void addNewYearDialog(BuildContext context) {
       );
     },
   );
+
+  return completer.future; // Return the Future
 }
 
 String getAbbreviation(String longMonthName) {
