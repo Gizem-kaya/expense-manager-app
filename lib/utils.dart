@@ -78,7 +78,7 @@ Future<double?> increaseExpenseDialog(
   );
 }
 
-void addNewYearDialog(BuildContext context, int year) {
+void addNewYearDialog(BuildContext context) {
   TextEditingController yearController = TextEditingController();
 
   showDialog(
@@ -111,27 +111,27 @@ void addNewYearDialog(BuildContext context, int year) {
               if (selectedYear == null) {
                 SnackBar(content: Text('Please enter a valid year'));
               } else {
+                List<Expense> expenses = [];
                 months.forEach((month) {
                   categories.forEach((category) {
-                    Expense newExpenseObject = Expense(
+                    expenses.add(Expense(
                       month: month.toLowerCase(),
                       year: selectedYear,
                       category: category.toLowerCase(),
                       value: 0.0,
-                    );
-
-                    database.insertNewExpense(newExpenseObject).then((value) {
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Expense added successfully')),
-                      );
-                    }).catchError((error) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text('Failed to add expense: $error')),
-                      );
-                    });
+                    ));
                   });
+                });
+
+                database.insertListOfExpenses(expenses).then((value) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Expense added successfully')),
+                  );
+                }).catchError((error) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to add expense: $error')),
+                  );
                 });
               }
             },
@@ -181,7 +181,7 @@ String capitalize(String text) {
 Color getColors(String text) {
   switch (text) {
     case 'food':
-      return Color(0xFFFFB74D);
+      return const Color(0xFFFFB74D);
     case 'gwe':
       return const Color(0xFFFFD54F);
     case 'transportation':
@@ -295,3 +295,12 @@ BarChartGroupData generateGroupData(
 bool isItemFound(int index) {
   return index != -1;
 }
+
+// Map<String, dynamic> toMap(Expense expense) {
+//   return {
+//     'month': expense.month,
+//     'year': expense.year,
+//     'category': expense.category,
+//     'value': expense.value,
+//   };
+// }

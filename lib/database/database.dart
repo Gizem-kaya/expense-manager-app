@@ -42,6 +42,14 @@ class AppDatabase extends _$AppDatabase {
     await into(expenses).insert(expense);
   }
 
+  Future<void> insertListOfExpenses(List<Expense> expensesList) async {
+    await batch((batch) {
+      for (final expense in expensesList) {
+        batch.insert(expenses, expense);
+      }
+    });
+  }
+
   Future updateExpense(Expense updatedExpense) async {
     // Check if the expense exists
     final existingExpense = await (select(expenses)

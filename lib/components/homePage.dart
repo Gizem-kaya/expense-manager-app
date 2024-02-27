@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.add),
             onPressed: () {
               print('Add button pressed');
-              addNewYearDialog(context, selectedYear);
+              addNewYearDialog(context);
             },
           ),
         ],
@@ -53,7 +53,16 @@ class _HomePageState extends State<HomePage> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             print("Waiting for fetching data from database...");
-            return Center(child: CircularProgressIndicator());
+            return Center(
+              child: SizedBox(
+                width: 50,
+                height: 50,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  value: null,
+                ),
+              ),
+            );
           } else if (snapshot.hasError) {
             print("The database has an error!");
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -77,18 +86,11 @@ class _HomePageState extends State<HomePage> {
                       (yearlyExpense) => yearlyExpense.year == selectedYear)
                   .monthlyExpenses;
 
-              return Expanded(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child:
-                          _buildGraph(yearlyExpenses, selectedMonthlyExpense),
-                    ),
-                    Expanded(
-                      child: _buildCardContainer(selectedMonthlyExpense),
-                    ),
-                  ],
-                ),
+              return Column(
+                children: [
+                  _buildGraph(yearlyExpenses, selectedMonthlyExpense),
+                  _buildCardContainer(selectedMonthlyExpense),
+                ],
               );
             } else {
               return Center(
@@ -128,7 +130,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildCardContainer(List<MonthlyExpense> monthlyExpenses) {
-    return Container(
+    return Expanded(
+        child: Container(
       margin: EdgeInsets.all(10),
       padding: EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
@@ -161,7 +164,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Future<void> _showMonthPicker(BuildContext context) async {
