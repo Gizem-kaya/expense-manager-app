@@ -22,6 +22,14 @@ class AppDatabase extends _$AppDatabase {
   int get schemaVersion => 1;
 
   Future<List<Expense>> getAllExpenses() async => await select(expenses).get();
+  Future<List<Expense>> getAllSortedByColumn(String columnName) async {
+    return (select(expenses)
+          ..orderBy([
+            (t) => OrderingTerm(expression: expenses.year),
+          ]))
+        .get();
+  }
+
   Stream<List<Expense>> watchAllExpenses() => select(expenses).watch();
   Future insertNewExpense(Expense expense) async {
     // Check if the combination of year, month, and category already exists

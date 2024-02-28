@@ -1,13 +1,19 @@
+import 'package:expense_manager/components/dialogs/popups.dart';
 import 'package:expense_manager/database/database.dart';
 import 'package:expense_manager/models/categoricalExpense.dart';
 import 'package:expense_manager/models/yearlyExpense.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../database/utils.dart';
 import '../models/monthlyExpense.dart';
 import '../utils.dart';
-import 'categoryPage.dart';
+import 'blankScreen.dart';
+import 'card.dart';
+import 'dialogs/changeExpense.dart';
+import 'dialogs/newYear.dart';
+import 'graph.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key, required this.title}) : super(key: key);
@@ -22,51 +28,32 @@ class _HomePageState extends State<HomePage> {
   late AppDatabase database;
   late int selectedYear;
   late String selectedMonth;
-  int renders = 0;
-  late Currency selectedCurrency;
+  int rerenderingRequired = 0;
 
   @override
   void initState() {
     super.initState();
-    selectedMonth = 'december';
-    selectedCurrency = Currency.Euro;
+    selectedMonth = 'january';
   }
 
   @override
   Widget build(BuildContext context) {
     database = Provider.of<AppDatabase>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
         actions: [
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () {
-              print('Add button pressed');
-              addNewYearDialog(context).then((_) {
-                setState(() {
-                  // Refresh the UI here
-                });
-              });
-            },
-          ),
+          _buildAddYearButton(context),
+          _buildMoreButton(),
         ],
       ),
       body: FutureBuilder<List<Expense>>(
-        future: _getExpensesFromDatabase(database),
+        future: getExpensesFromDatabase(database),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             print("Waiting for fetching data from database...");
-            return Center(
-              child: SizedBox(
-                width: 50,
-                height: 50,
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                  value: null,
-                ),
-              ),
-            );
+            return buildWaitingIndicator();
           } else if (snapshot.hasError) {
             print("The database has an error!");
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -77,33 +64,16 @@ class _HomePageState extends State<HomePage> {
             List<Expense>? expenses = snapshot.data;
             if (expenses != null && expenses.isNotEmpty) {
               List<YearlyExpense> yearlyExpenses =
-                  _generateYearlyExpenses(expenses);
+                  generateYearlyExpenses(expenses);
 
-              try {
-                selectedYear;
-              } catch (e) {
-                selectedYear = _getMaxYear(yearlyExpenses);
-              }
+              _getSelectedYear(yearlyExpenses);
 
-              List<MonthlyExpense> selectedMonthlyExpense = yearlyExpenses
-                  .firstWhere(
-                      (yearlyExpense) => yearlyExpense.year == selectedYear)
-                  .monthlyExpenses;
+              List<MonthlyExpense> selectedMonthlyExpense =
+                  getSelectedYearlyExpense(yearlyExpenses, selectedYear);
 
-              return Column(
-                children: [
-                  _buildGraph(yearlyExpenses, selectedMonthlyExpense),
-                  _buildCardContainer(selectedMonthlyExpense),
-                ],
-              );
+              return _buildMainScreen(yearlyExpenses, selectedMonthlyExpense);
             } else {
-              return Center(
-                  child: Text(
-                "No expenses found!\n"
-                "Click + button to add a new expense",
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ));
+              return buildBlankScreen(context);
             }
           }
         },
@@ -111,26 +81,101 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<List<Expense>> _getExpensesFromDatabase(AppDatabase database) async {
-    return await database.getAllExpenses();
+  Column _buildMainScreen(List<YearlyExpense> yearlyExpenses,
+      List<MonthlyExpense> selectedMonthlyExpense) {
+    return Column(
+      children: [
+        _buildGraphContainer(yearlyExpenses, selectedMonthlyExpense),
+        _buildCardContainer(selectedMonthlyExpense),
+      ],
+    );
   }
 
-  List<YearlyExpense> _generateYearlyExpenses(List<Expense> expenses) {
-    List<YearlyExpense> yearlyExpenses = [];
+  Widget _buildGraphContainer(List<YearlyExpense> yearlyExpenses,
+      List<MonthlyExpense> monthlyExpenses) {
+    int yearIndex =
+        yearlyExpenses.indexWhere((expense) => expense.year == selectedYear);
+    int previousYear = -1;
+    int nextYear = -1;
 
-    expenses.forEach((expense) {
-      final yearlyExpenseIndex = yearlyExpenses
-          .indexWhere((yearlyExpense) => yearlyExpense.year == expense.year);
+    try {
+      previousYear = yearlyExpenses[yearIndex - 1].year;
+    } catch (e) {}
+    try {
+      nextYear = yearlyExpenses[yearIndex + 1].year;
+    } catch (e) {}
 
-      if (isItemFound(yearlyExpenseIndex)) {
-        addNewExpenseToYearlyExpenses(
-            yearlyExpenses, yearlyExpenseIndex, expense);
-      } else {
-        addNewYearlyExpense(yearlyExpenses, expense);
-      }
-    });
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(15, 10, 20, 5),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildYearInGraph(previousYear, nextYear),
+            SizedBox(height: 10),
+            buildGraph(monthlyExpenses),
+          ],
+        ),
+      ),
+    );
+  }
 
-    return yearlyExpenses;
+  Row _buildYearInGraph(int previousYear, int nextYear) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 30,
+          child: Visibility(
+              visible: previousYear > 0,
+              child: TextButton(
+                child: Text(
+                  '<',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                onPressed: () {
+                  setState(() {
+                    selectedYear = previousYear;
+                  });
+                },
+              )),
+        ),
+        Text(
+          selectedYear.toString(),
+          style: TextStyle(
+            color: Colors.blue,
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Container(
+          width: 30,
+          child: Visibility(
+              visible: nextYear > 0,
+              child: TextButton(
+                child: Text(
+                  '>',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                onPressed: () {
+                  setState(() {
+                    selectedYear = nextYear;
+                  });
+                },
+              )),
+        ),
+      ],
+    );
   }
 
   Widget _buildCardContainer(List<MonthlyExpense> monthlyExpenses) {
@@ -150,25 +195,108 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          TextButton(
-            style: TextButton.styleFrom(
-              textStyle: const TextStyle(fontSize: 20),
-            ),
-            onPressed: () {
-              _showMonthPicker(context);
-            },
-            child: Text(capitalize(selectedMonth)),
-          ),
-          Expanded(
-            flex: 1,
-            child: _buildCardView(monthlyExpenses),
-          ),
-        ],
-      ),
+      child: _buildCardText(monthlyExpenses),
     ));
+  }
+
+  Widget _buildCardView(List<MonthlyExpense> monthlyExpenses) {
+    List<CategoricalExpense> categoricalExpenses =
+        getCategoricalExpensesOf(monthlyExpenses, selectedMonth);
+
+    return GridView.count(
+      crossAxisCount: 2,
+      childAspectRatio: (1 / .5),
+      padding: EdgeInsets.all(10.0),
+      crossAxisSpacing: 15.0,
+      mainAxisSpacing: 15.0,
+      children: List.generate(categoricalExpenses.length, (index) {
+        return SizedBox(
+          child: _buildCard(context, categoricalExpenses[index].category,
+              categoricalExpenses[index].amount.toInt()),
+        );
+      }),
+    );
+  }
+
+  Widget _buildCard(BuildContext context, String title, int amount) {
+    Color color = getColors(title);
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      color: color,
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        title: buildCardTitle(title),
+        subtitle: buildCardSubTitle(amount),
+        trailing: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white.withOpacity(0.3),
+          ),
+          child: _buildAddExpenseButton(context, title, amount),
+        ),
+      ),
+    );
+  }
+
+  IconButton _buildAddExpenseButton(
+      BuildContext context, String title, int amount) {
+    return IconButton(
+      icon: Icon(
+        Icons.add,
+        color: Colors.white,
+        size: 20,
+      ),
+      onPressed: () async {
+        double? enteredValue =
+            await increaseExpenseDialog(context, title, amount);
+        double updatedValue =
+            enteredValue != null ? (amount + enteredValue).toDouble() : -1;
+        if (updatedValue >= 0) {
+          database
+              .updateExpense(Expense(
+                  year: selectedYear,
+                  month: selectedMonth,
+                  category: title,
+                  value: updatedValue))
+              .then((value) => setState(() {}));
+        } else {
+          final snackBar = SnackBar(
+            content: const Text('You can not go under zero!'),
+            action: SnackBarAction(
+              label: 'OK',
+              onPressed: () {},
+            ),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        }
+      },
+    );
+  }
+
+  Column _buildCardText(List<MonthlyExpense> monthlyExpenses) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextButton(
+          style: TextButton.styleFrom(
+            textStyle: const TextStyle(fontSize: 20),
+          ),
+          onPressed: () {
+            _showMonthPicker(context);
+          },
+          child: Text(capitalize(selectedMonth)),
+        ),
+        Expanded(
+          flex: 1,
+          child: _buildCardView(monthlyExpenses),
+        ),
+      ],
+    );
   }
 
   Future<void> _showMonthPicker(BuildContext context) async {
@@ -177,45 +305,8 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (BuildContext context) {
         return Container(
-          height: 200.0,
-          child: Column(
-            children: [
-              Expanded(
-                child: CupertinoPicker(
-                  itemExtent: 40.0,
-                  scrollController: FixedExtentScrollController(
-                      initialItem: months.indexOf(capitalize(selectedMonth))),
-                  onSelectedItemChanged: (int index) {
-                    _selectedMonth = months[index];
-                  },
-                  children: List.generate(months.length, (index) {
-                    return Center(
-                      child: Text(
-                        months[index],
-                        style: TextStyle(fontSize: 20.0),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    selectedMonth = _selectedMonth;
-                  });
-                  Navigator.pop(context, selectedMonth);
-                },
-                child: Container(
-                  padding: EdgeInsets.all(16.0),
-                  color: Colors.grey[200],
-                  child: Text(
-                    'OK',
-                    style: TextStyle(fontSize: 20.0),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          height: 300.0,
+          child: _buildCupertinoPicker(_selectedMonth, context),
         );
       },
     );
@@ -227,376 +318,59 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Widget _buildGraph(List<YearlyExpense> yearlyExpenses,
-      List<MonthlyExpense> monthlyExpenses) {
-    int yearIndex =
-        yearlyExpenses.indexWhere((expense) => expense.year == selectedYear);
-    int previousYear = -1;
-    int nextYear = -1;
-
-    try {
-      previousYear = yearlyExpenses[yearIndex - 1].year;
-    } catch (e) {}
-    try {
-      nextYear = yearlyExpenses[yearIndex + 1].year;
-    } catch (e) {}
-
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(15, 0, 20, 5),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 30,
-                  child: Visibility(
-                      visible: previousYear > 0,
-                      child: TextButton(
-                        child: Text(
-                          '<',
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            selectedYear = previousYear;
-                          });
-                        },
-                      )),
-                ),
-                Text(
-                  selectedYear.toString(),
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Container(
-                  width: 30,
-                  child: Visibility(
-                      visible: nextYear > 0,
-                      child: TextButton(
-                        child: Text(
-                          '>',
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            selectedYear = nextYear;
-                          });
-                        },
-                      )),
-                ),
-              ],
-            ),
-            const SizedBox(),
-            AspectRatio(
-              aspectRatio: 1.1,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: BarChart(
-                      BarChartData(
-                        alignment: BarChartAlignment.spaceAround,
-                        barTouchData: BarTouchData(enabled: false),
-                        borderData: FlBorderData(show: false),
-                        gridData: FlGridData(show: false),
-                        maxY: monthlyExpenses
-                                .map((monthlyExpense) =>
-                                    monthlyExpense.getTotalExpense())
-                                .reduce((value, element) =>
-                                    value > element ? value : element) +
-                            300,
-                        titlesData: FlTitlesData(
-                          bottomTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 20,
-                            getTextStyles: (context, value) => const TextStyle(
-                                color: Colors.black38, fontSize: 11),
-                            margin: 10,
-                            getTitles: (double value) {
-                              int index = value.toInt();
-                              if (index >= 0 &&
-                                  index < monthlyExpenses.length) {
-                                return getAbbreviation(
-                                    monthlyExpenses[index].month);
-                              }
-                              return 'error';
-                            },
-                          ),
-                          leftTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 20,
-                            getTextStyles: (context, value) => const TextStyle(
-                                color: Colors.black38, fontSize: 11),
-                            margin: 7,
-                          ),
-                          topTitles: SideTitles(showTitles: false),
-                          rightTitles: SideTitles(showTitles: false),
-                        ),
-                        barGroups: List.generate(
-                          monthlyExpenses.length,
-                          (index) => generateGroupData(
-                            index,
-                            monthlyExpenses[index]
-                                .categoricalExpensesList[0]
-                                .amount
-                                .toDouble(),
-                            monthlyExpenses[index]
-                                .categoricalExpensesList[1]
-                                .amount
-                                .toDouble(),
-                            monthlyExpenses[index]
-                                .categoricalExpensesList[2]
-                                .amount
-                                .toDouble(),
-                            monthlyExpenses[index]
-                                .categoricalExpensesList[3]
-                                .amount
-                                .toDouble(),
-                            monthlyExpenses[index]
-                                .categoricalExpensesList[4]
-                                .amount
-                                .toDouble(),
-                            monthlyExpenses[index]
-                                .categoricalExpensesList[5]
-                                .amount
-                                .toDouble(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCardView(List<MonthlyExpense> monthlyExpenses) {
-    List<CategoricalExpense> categoricalExpenses =
-        _getCategoricalExpensesOf(monthlyExpenses);
-
-    return GridView.count(
-      crossAxisCount: 2,
-      childAspectRatio: (1 / .5),
-      padding: EdgeInsets.all(10.0),
-      crossAxisSpacing: 15.0,
-      mainAxisSpacing: 15.0,
-      children: List.generate(categoricalExpenses.length, (index) {
-        return SizedBox(
-          child: _buildCard(
-            context,
-            categoricalExpenses[index].category,
-            categoricalExpenses[index].amount.toInt(),
-            categoricalExpenses[index].currency.sign,
-          ),
-        );
-      }),
-    );
-  }
-
-  List<CategoricalExpense> _getCategoricalExpensesOf(
-      List<MonthlyExpense> monthlyExpenses) {
-    return monthlyExpenses
-        .firstWhere((expense) => (expense.month == selectedMonth))
-        .categoricalExpensesList;
-  }
-
-  Widget _buildCard(
-      BuildContext context, String title, int amount, String currency) {
-    Color color = getColors(title);
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      color: color,
-      child: ListTile(
-        contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-        title: Text(
-          capitalize(title),
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-            color: Colors.white,
-          ),
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Text(
-          '$amount $currency',
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.white70,
-          ),
-        ),
-        trailing: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white.withOpacity(0.3),
-          ),
-          child: IconButton(
-            icon: Icon(
-              Icons.add,
-              color: Colors.white,
-              size: 20,
-            ),
-            onPressed: () async {
-              double? enteredValue =
-                  await increaseExpenseDialog(context, title, amount);
-              double updatedValue = enteredValue != null
-                  ? (amount + enteredValue).toDouble()
-                  : -1;
-              if (updatedValue >= 0) {
-                database
-                    .updateExpense(Expense(
-                        year: selectedYear,
-                        month: selectedMonth,
-                        category: title,
-                        value: updatedValue))
-                    .then((value) => setState(() {}));
-              } else {
-                final snackBar = SnackBar(
-                  content: const Text('You can not go under zero!'),
-                  action: SnackBarAction(
-                    label: 'OK',
-                    onPressed: () {},
-                  ),
-                );
-                ScaffoldMessenger.of(context).showSnackBar(snackBar);
-              }
+  Column _buildCupertinoPicker(String _selectedMonth, BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: CupertinoPicker(
+            itemExtent: 40.0,
+            scrollController: FixedExtentScrollController(
+                initialItem: months.indexOf(capitalize(selectedMonth))),
+            onSelectedItemChanged: (int index) {
+              _selectedMonth = months[index];
             },
+            children: generateCupertinoList(),
           ),
         ),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => CategoryPage()),
-          );
-        },
-      ),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              selectedMonth = _selectedMonth;
+            });
+            Navigator.pop(context, selectedMonth);
+          },
+          child: buildOkButton(),
+        ),
+      ],
     );
   }
 
-  void addNewExpenseToYearlyExpenses(List<YearlyExpense> yearlyExpenses,
-      int yearlyExpenseIndex, Expense expense) {
-    int monthIndex = yearlyExpenses[yearlyExpenseIndex]
-        .monthlyExpenses
-        .indexWhere((monthlyExpense) =>
-            expense.year == monthlyExpense.year &&
-            expense.month == monthlyExpense.month);
+  IconButton _buildMoreButton() {
+    return IconButton(
+      icon: Icon(Icons.more_vert),
+      onPressed: () {
+        print('More button pressed');
+      },
+    );
+  }
 
-    if (isItemFound(monthIndex)) {
-      // the year and month already exist
-      yearlyExpenses[yearlyExpenseIndex]
-          .monthlyExpenses[monthIndex]
-          .categoricalExpensesList
-          .add(
-            CategoricalExpense(
-              expense.category,
-              expense.value!.toInt(),
-              Currency.Euro,
-            ),
-          );
-    } else {
-      // only the year exists
-      yearlyExpenses[yearlyExpenseIndex].monthlyExpenses.add(
-            MonthlyExpense(
-              expense.month,
-              expense.year,
-              [
-                CategoricalExpense(
-                  expense.category,
-                  expense.value!.toInt(),
-                  Currency.Euro,
-                ),
-              ],
-            ),
-          );
+  IconButton _buildAddYearButton(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.add),
+      onPressed: () {
+        print('Add button pressed');
+        addNewYearDialog(context).then((value) => setState(() {
+              rerenderingRequired++;
+            }));
+      },
+    );
+  }
+
+  void _getSelectedYear(List<YearlyExpense> yearlyExpenses) {
+    try {
+      selectedYear;
+    } catch (e) {
+      selectedYear = getMaxYear(yearlyExpenses);
     }
   }
-
-  void addNewYearlyExpense(
-      List<YearlyExpense> yearlyExpenses, Expense expense) {
-    YearlyExpense newYearlyExpense = YearlyExpense(expense.year, []);
-
-    int monthIndex = newYearlyExpense.monthlyExpenses.indexWhere(
-        (monthlyExpense) =>
-            expense.year == monthlyExpense.year &&
-            expense.month == monthlyExpense.month);
-
-    if (isItemFound(monthIndex)) {
-      // only the month exists
-      newYearlyExpense.monthlyExpenses[monthIndex].categoricalExpensesList.add(
-        CategoricalExpense(
-          expense.category,
-          expense.value!.toInt(),
-          Currency.Euro,
-        ),
-      );
-    } else {
-      newYearlyExpense.monthlyExpenses.add(
-        // the year and month don't exist
-        MonthlyExpense(
-          expense.month,
-          expense.year,
-          [
-            CategoricalExpense(
-              expense.category,
-              expense.value!.toInt(),
-              Currency.Euro,
-            ),
-          ],
-        ),
-      );
-    }
-    yearlyExpenses.add(newYearlyExpense);
-  }
-
-  void fillInTheBlankData(List<YearlyExpense> yearlyExpenses) {
-    List<CategoricalExpense> emptyCategoricalExpenses = [
-      CategoricalExpense('food', 0, selectedCurrency),
-      CategoricalExpense('transportation', 0, selectedCurrency),
-      CategoricalExpense('gwe', 0, selectedCurrency),
-      CategoricalExpense('rent', 0, selectedCurrency),
-      CategoricalExpense('insurances', 0, selectedCurrency),
-      CategoricalExpense('activities', 0, selectedCurrency)
-    ];
-
-    yearlyExpenses.forEach((yearlyExpense) {
-      int currentYear = yearlyExpense.year;
-      if (yearlyExpense.monthlyExpenses.length < 12) {
-        for (int monthIndex = 0; monthIndex < 12; monthIndex++) {
-          yearlyExpense.monthlyExpenses[monthIndex] = MonthlyExpense(
-              months[monthIndex], currentYear, emptyCategoricalExpenses);
-        }
-      }
-    });
-  }
-}
-
-int _getMaxYear(List<YearlyExpense> yearlyExpenses) {
-  int maxYear = 0;
-  yearlyExpenses.forEach((expense) {
-    if (expense.year > maxYear) maxYear = expense.year;
-  });
-  return maxYear;
 }

@@ -1,17 +1,21 @@
-enum Currency {
-  Lira('₺'),
-  Euro('€'),
-  Dollar('\$');
+import '../database/database.dart';
 
-  final String sign;
-
-  const Currency(this.sign);
-}
+final List<String> categories = [
+  'food',
+  'transportation',
+  'gwe',
+  'rent',
+  'insurances',
+  'activities',
+];
 
 class CategoricalExpense {
   final String category;
   final int amount;
-  final Currency currency;
 
-  CategoricalExpense(this.category, this.amount, this.currency);
+  CategoricalExpense(this.category, this.amount);
+}
+
+CategoricalExpense buildCategoricalExpense(Expense expense) {
+  return CategoricalExpense(expense.category, expense.value!.toInt());
 }
