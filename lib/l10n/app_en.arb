@@ -11,6 +11,7 @@
   "year": "Year",
   "addYear": "Add a year",
   "invalidYear": "Please enter a valid year.",
+  "validYear": "Year added successfully!",
 
   "abb_JAN": "JAN",
   "abb_FEB": "FEB",

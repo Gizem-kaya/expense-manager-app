@@ -108,7 +108,7 @@ class _HomePageState extends State<HomePage> {
 
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(15, 10, 20, 5),
+        padding: const EdgeInsets.fromLTRB(15, 0, 20, 5),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,

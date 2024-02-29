@@ -10,8 +10,9 @@
     "notValidAmount": "Sıfır veya altında bir sayıya izin verilmez!",
     "ok": "Tamam",
     "year": "Yıl",
-    "addYear": "Bir yıl ekleyin.",
-    "invalidYear": "Lütfen geçerli bir yıl ekleyin.",
+    "addYear": "Bir yıl ekleyin",
+    "invalidYear": "Lütfen gerçekçi bir yıl ekleyin :)",
+    "validYear": "Yeni yıl başarıyla eklendi!",
 
     "abb_JAN": "OCA",
     "abb_FEB": "ŞUB",

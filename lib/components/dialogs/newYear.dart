@@ -41,7 +41,9 @@ Future<void> addNewYearDialog(BuildContext context) async {
           TextButton(
             onPressed: () async {
               int? selectedYear = int.tryParse(yearController.text);
-              if (selectedYear == null) {
+              if (selectedYear == null ||
+                  selectedYear < 1000 ||
+                  selectedYear > 3000) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                       content: Text(AppLocalizations.of(context)!.invalidYear)),
@@ -62,11 +64,15 @@ Future<void> addNewYearDialog(BuildContext context) async {
                 try {
                   await database.insertListOfExpenses(expenses);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Expense added successfully')),
+                    SnackBar(
+                        content: Text(AppLocalizations.of(context)!.validYear)),
                   );
                 } catch (error) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to add expense: $error')),
+                    SnackBar(
+                        content: Text(
+                            AppLocalizations.of(context)!.invalidYear +
+                                ': $error')),
                   );
                 } finally {
                   completer.complete(); // Complete the Future when done
