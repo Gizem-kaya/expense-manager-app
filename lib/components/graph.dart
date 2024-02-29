@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 
 import '../models/monthlyExpense.dart';
 import '../utils.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-AspectRatio buildGraph(List<MonthlyExpense> monthlyExpenses) {
+AspectRatio buildGraph(
+    BuildContext context, List<MonthlyExpense> monthlyExpenses) {
   return AspectRatio(
     aspectRatio: 1.1,
     child: Column(
@@ -18,7 +20,7 @@ AspectRatio buildGraph(List<MonthlyExpense> monthlyExpenses) {
               borderData: FlBorderData(show: false),
               gridData: FlGridData(show: false),
               maxY: getMaxY(monthlyExpenses),
-              titlesData: buildTitlesData(monthlyExpenses),
+              titlesData: buildTitlesData(context, monthlyExpenses),
               barGroups: generateBarGroups(monthlyExpenses),
             ),
           ),
@@ -28,7 +30,8 @@ AspectRatio buildGraph(List<MonthlyExpense> monthlyExpenses) {
   );
 }
 
-FlTitlesData buildTitlesData(List<MonthlyExpense> monthlyExpenses) {
+FlTitlesData buildTitlesData(
+    BuildContext context, List<MonthlyExpense> monthlyExpenses) {
   return FlTitlesData(
     bottomTitles: SideTitles(
       showTitles: true,
@@ -39,7 +42,7 @@ FlTitlesData buildTitlesData(List<MonthlyExpense> monthlyExpenses) {
       getTitles: (double value) {
         int index = value.toInt();
         if (index >= 0 && index < monthlyExpenses.length) {
-          return getAbbreviation(monthlyExpenses[index].month);
+          return getAbbreviation(context, monthlyExpenses[index].month);
         }
         return 'error';
       },
@@ -186,32 +189,32 @@ Color getColors(String text) {
   }
 }
 
-String getAbbreviation(String longMonthName) {
+String getAbbreviation(BuildContext context, String longMonthName) {
   switch (longMonthName) {
     case 'january':
-      return 'JAN';
+      return AppLocalizations.of(context)!.abb_JAN;
     case 'february':
-      return 'FEB';
+      return AppLocalizations.of(context)!.abb_FEB;
     case 'march':
-      return 'MAR';
+      return AppLocalizations.of(context)!.abb_MAR;
     case 'april':
-      return 'APR';
+      return AppLocalizations.of(context)!.abb_APR;
     case 'may':
-      return 'MAY';
+      return AppLocalizations.of(context)!.abb_MAY;
     case 'june':
-      return 'JUN';
+      return AppLocalizations.of(context)!.abb_JUN;
     case 'july':
-      return 'JUL';
+      return AppLocalizations.of(context)!.abb_JUL;
     case 'august':
-      return 'AUG';
+      return AppLocalizations.of(context)!.abb_AUG;
     case 'september':
-      return 'SEP';
+      return AppLocalizations.of(context)!.abb_SEP;
     case 'october':
-      return 'OCT';
+      return AppLocalizations.of(context)!.abb_OCT;
     case 'november':
-      return 'NOV';
+      return AppLocalizations.of(context)!.abb_NOV;
     case 'december':
-      return 'DEC';
+      return AppLocalizations.of(context)!.abb_DEC;
     default:
       throw Exception('Month name is not correct!');
   }

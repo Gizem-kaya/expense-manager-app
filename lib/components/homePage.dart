@@ -5,6 +5,7 @@ import 'package:expense_manager/models/yearlyExpense.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../database/utils.dart';
 import '../models/monthlyExpense.dart';
@@ -42,7 +43,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(AppLocalizations.of(context)!.app_name),
         actions: [
           _buildAddYearButton(context),
           _buildMoreButton(),
@@ -114,7 +115,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             _buildYearInGraph(previousYear, nextYear),
             SizedBox(height: 10),
-            buildGraph(monthlyExpenses),
+            buildGraph(context, monthlyExpenses),
           ],
         ),
       ),
@@ -210,16 +211,17 @@ class _HomePageState extends State<HomePage> {
       crossAxisSpacing: 15.0,
       mainAxisSpacing: 15.0,
       children: List.generate(categoricalExpenses.length, (index) {
+        Color color = getColors(categoricalExpenses[index].category);
         return SizedBox(
           child: _buildCard(context, categoricalExpenses[index].category,
-              categoricalExpenses[index].amount.toInt()),
+              categoricalExpenses[index].amount.toInt(), color),
         );
       }),
     );
   }
 
-  Widget _buildCard(BuildContext context, String title, int amount) {
-    Color color = getColors(title);
+  Widget _buildCard(
+      BuildContext context, String title, int amount, Color color) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -228,8 +230,8 @@ class _HomePageState extends State<HomePage> {
       color: color,
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-        title: buildCardTitle(title),
-        subtitle: buildCardSubTitle(amount),
+        title: buildCardTitle(context, title),
+        subtitle: buildCardSubTitle(context, amount),
         trailing: Container(
           width: 40,
           height: 40,
@@ -266,9 +268,9 @@ class _HomePageState extends State<HomePage> {
               .then((value) => setState(() {}));
         } else {
           final snackBar = SnackBar(
-            content: const Text('You can not go under zero!'),
+            content: Text(AppLocalizations.of(context)!.notValidAmount),
             action: SnackBarAction(
-              label: 'OK',
+              label: AppLocalizations.of(context)!.ok,
               onPressed: () {},
             ),
           );
@@ -289,7 +291,8 @@ class _HomePageState extends State<HomePage> {
           onPressed: () {
             _showMonthPicker(context);
           },
-          child: Text(capitalize(selectedMonth)),
+          child:
+              Text(capitalize(getSelectedMonthTitle(context, selectedMonth))),
         ),
         Expanded(
           flex: 1,
@@ -325,11 +328,11 @@ class _HomePageState extends State<HomePage> {
           child: CupertinoPicker(
             itemExtent: 40.0,
             scrollController: FixedExtentScrollController(
-                initialItem: months.indexOf(capitalize(selectedMonth))),
+                initialItem: months.indexOf(selectedMonth)),
             onSelectedItemChanged: (int index) {
               _selectedMonth = months[index];
             },
-            children: generateCupertinoList(),
+            children: generateCupertinoList(context),
           ),
         ),
         GestureDetector(
@@ -339,7 +342,7 @@ class _HomePageState extends State<HomePage> {
             });
             Navigator.pop(context, selectedMonth);
           },
-          child: buildOkButton(),
+          child: buildOkButton(context),
         ),
       ],
     );

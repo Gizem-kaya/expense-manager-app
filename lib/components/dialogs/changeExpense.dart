@@ -1,5 +1,7 @@
+import 'package:expense_manager/models/categoricalExpense.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../utils.dart';
 
@@ -14,13 +16,14 @@ Future<double?> increaseExpenseDialog(
       TextEditingController _textEditingController = TextEditingController();
 
       return AlertDialog(
-        title: Text(capitalize(category)),
+        title: Text(capitalize(getCategoryName(context, category))),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             TextField(
               controller: _textEditingController,
-              decoration: InputDecoration(labelText: "Enter the amount"),
+              decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.enterTheAmount),
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.allow(
@@ -35,7 +38,7 @@ Future<double?> increaseExpenseDialog(
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: Text('CANCEL'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -43,7 +46,7 @@ Future<double?> increaseExpenseDialog(
                   double.tryParse(_textEditingController.text);
               Navigator.of(context).pop(enteredValue);
             },
-            child: Text('ADD'),
+            child: Text(AppLocalizations.of(context)!.add),
           ),
         ],
       );

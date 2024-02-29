@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../database/database.dart';
 import '../../models/categoricalExpense.dart';
 import '../../models/monthlyExpense.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> addNewYearDialog(BuildContext context) async {
   TextEditingController yearController = TextEditingController();
@@ -18,13 +19,14 @@ Future<void> addNewYearDialog(BuildContext context) async {
       late AppDatabase database;
       database = Provider.of<AppDatabase>(context);
       return AlertDialog(
-        title: Text('Add an expense'),
+        title: Text(AppLocalizations.of(context)!.addYear),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             TextField(
               controller: yearController,
-              decoration: InputDecoration(labelText: 'Year'),
+              decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.year),
               keyboardType: TextInputType.numberWithOptions(decimal: true),
             ),
           ],
@@ -34,21 +36,22 @@ Future<void> addNewYearDialog(BuildContext context) async {
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () async {
               int? selectedYear = int.tryParse(yearController.text);
               if (selectedYear == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Please enter a valid year')),
+                  SnackBar(
+                      content: Text(AppLocalizations.of(context)!.invalidYear)),
                 );
               } else {
                 List<Expense> expenses = [];
                 months.forEach((month) {
                   categories.forEach((category) {
                     expenses.add(Expense(
-                      month: month.toLowerCase(),
+                      month: month,
                       year: selectedYear,
                       category: category.toLowerCase(),
                       value: 0.0,
@@ -71,7 +74,7 @@ Future<void> addNewYearDialog(BuildContext context) async {
                 }
               }
             },
-            child: Text('Add'),
+            child: Text(AppLocalizations.of(context)!.add),
           ),
         ],
       );

@@ -1,24 +1,25 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../models/monthlyExpense.dart';
 
-Container buildOkButton() {
+Container buildOkButton(BuildContext context) {
   return Container(
     padding: EdgeInsets.all(16.0),
     color: Colors.grey[200],
     child: Text(
-      'OK',
+      AppLocalizations.of(context)!.ok,
       style: TextStyle(fontSize: 20.0),
     ),
   );
 }
 
-List<Widget> generateCupertinoList() {
+List<Widget> generateCupertinoList(BuildContext context) {
   return List.generate(months.length, (index) {
     return Center(
       child: Text(
-        months[index],
+        getSelectedMonthTitle(context, months[index]),
         style: TextStyle(fontSize: 20.0),
       ),
     );
