@@ -6,10 +6,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/utils.dart';
-import '../main.dart';
 import '../models/monthlyExpense.dart';
 import '../utils.dart';
 import 'blankScreen.dart';
@@ -370,7 +368,11 @@ class _HomePageState extends State<HomePage> {
             showLanguagePickerDialog(context);
             break;
           case '2':
-            showAboutDialog(context: context);
+            showAboutDialog(
+                context: context,
+                applicationName: AppLocalizations.of(context)!.app_name,
+                applicationLegalese:
+                    'Copyright © 2024 Gizem Keskin. All Rights Reserved.');
             break;
         }
       },
