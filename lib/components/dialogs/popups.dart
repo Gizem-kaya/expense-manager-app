@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
 
+import '../../l10n/languageCodes.dart';
 import '../../models/monthlyExpense.dart';
 
 Container buildOkButton(BuildContext context) {
@@ -15,7 +17,7 @@ Container buildOkButton(BuildContext context) {
   );
 }
 
-List<Widget> generateCupertinoList(BuildContext context) {
+List<Widget> generateMonthCupertinoList(BuildContext context) {
   return List.generate(months.length, (index) {
     return Center(
       child: Text(

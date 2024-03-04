@@ -6,13 +6,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/utils.dart';
+import '../main.dart';
 import '../models/monthlyExpense.dart';
 import '../utils.dart';
 import 'blankScreen.dart';
 import 'card.dart';
 import 'dialogs/changeExpense.dart';
+import 'dialogs/changeLanguage.dart';
 import 'dialogs/newYear.dart';
 import 'graph.dart';
 
@@ -309,7 +312,7 @@ class _HomePageState extends State<HomePage> {
       builder: (BuildContext context) {
         return Container(
           height: 300.0,
-          child: _buildCupertinoPicker(_selectedMonth, context),
+          child: _buildCupertinoMonthPicker(_selectedMonth, context),
         );
       },
     );
@@ -321,7 +324,8 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Column _buildCupertinoPicker(String _selectedMonth, BuildContext context) {
+  Column _buildCupertinoMonthPicker(
+      String _selectedMonth, BuildContext context) {
     return Column(
       children: [
         Expanded(
@@ -332,7 +336,7 @@ class _HomePageState extends State<HomePage> {
             onSelectedItemChanged: (int index) {
               _selectedMonth = months[index];
             },
-            children: generateCupertinoList(context),
+            children: generateMonthCupertinoList(context),
           ),
         ),
         GestureDetector(
@@ -348,11 +352,27 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  IconButton _buildMoreButton() {
-    return IconButton(
-      icon: Icon(Icons.more_vert),
-      onPressed: () {
-        print('More button pressed');
+  PopupMenuButton _buildMoreButton() {
+    return PopupMenuButton<String>(
+      itemBuilder: (BuildContext context) => [
+        PopupMenuItem(
+          value: '1',
+          child: Text(AppLocalizations.of(context)!.languages),
+        ),
+        PopupMenuItem(
+          value: '2',
+          child: Text(AppLocalizations.of(context)!.about),
+        )
+      ],
+      onSelected: (String value) {
+        switch (value) {
+          case '1':
+            showLanguagePickerDialog(context);
+            break;
+          case '2':
+            showAboutDialog(context: context);
+            break;
+        }
       },
     );
   }

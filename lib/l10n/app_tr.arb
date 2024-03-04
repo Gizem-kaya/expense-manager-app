@@ -1,6 +1,8 @@
 
 {
-    "language": "dil",
+    "languages": "Diller",
+    "english": "İngilizce",
+    "turkish": "Türkçe",
     "app_name": "Gider Yönetimi",
     "currency": "₺",
     "error": "hata",
@@ -13,6 +15,7 @@
     "addYear": "Bir yıl ekleyin",
     "invalidYear": "Lütfen gerçekçi bir yıl ekleyin :)",
     "validYear": "Yeni yıl başarıyla eklendi!",
+    "about": "Hakkında",
 
     "abb_JAN": "OCA",
     "abb_FEB": "ŞUB",
